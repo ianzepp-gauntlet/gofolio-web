@@ -2,6 +2,16 @@
 
 Migration of the Ghostfolio Angular frontend to SvelteKit.
 
+## Rewrite Principle
+
+This is a **frontend UI rewrite** with behavioral parity goals.
+
+- Preserve the user experience: theme, layout, navigation flow, and user-visible behavior.
+- Do **not** require implementation parity with Angular (component boundaries, RxJS patterns, route tree shape, or file structure can differ).
+- API integration can be redesigned for SvelteKit as long as the end-to-end behavior is preserved and consistent with:
+  - `browser -> gofolio-web -> gofolio-api -> db`
+- Treat the Angular app as the visual and functional reference, not a line-by-line implementation template.
+
 ## Source Audit Summary
 
 The existing Angular frontend (`ghostfolio/apps/client/`) is:
@@ -65,7 +75,7 @@ gofolio-web/                    SvelteKit project
           +page.svelte          Login (JWT token only)
           [jwt]/+page.svelte    Token-based login
       api/
-        [...path]/+server.ts    Catch-all proxy to gofolio-api
+        [...path]/+server.ts    Same-origin proxy (gofolio-web -> gofolio-api)
       p/
         [accessId]/+page.svelte Public portfolio (SSR)
     hooks.server.ts             Auth middleware, API proxy config
@@ -84,7 +94,7 @@ gofolio-web/                    SvelteKit project
 | Language | TypeScript | TypeScript |
 | Routing | Angular Router + lazy loading | SvelteKit file-based routing |
 | State | RxJS + ObservableStore | Svelte stores (`writable`, `derived`) |
-| HTTP client | Angular HttpClient + interceptors | `fetch` in `+page.server.ts` loaders + `$lib/api` client |
+| HTTP client | Angular HttpClient + interceptors | Same-origin `fetch` to `/api/v1/*`; SvelteKit server forwards to gofolio-api |
 | UI components | Angular Material | shadcn-svelte (Radix primitives, Tailwind) |
 | Icons | Ionicons | Ionicons (same icon set for visual parity) |
 | Charts | Chart.js + Angular wrappers | Chart.js direct (or svelte-chartjs) |
@@ -123,9 +133,9 @@ gofolio-web/                    SvelteKit project
 1. Init SvelteKit project with TypeScript
 2. Add Tailwind CSS
 3. Add shadcn-svelte (`npx shadcn-svelte@latest init`)
-4. Set up API proxy in `hooks.server.ts`
+4. Set up same-origin API proxy in `src/routes/api/[...path]/+server.ts` (server forwards to gofolio-api)
 5. Set up auth (JWT cookie handling)
-6. Create `$lib/api/client.ts` — typed fetch wrapper for gofolio-api
+6. Create `$lib/api/client.ts` — typed fetch wrapper for same-origin `/api/v1/*`
 7. Set up dark/light theme toggle with CSS vars
 8. Scaffold route groups: `(app)`, `(auth)`
 
@@ -251,10 +261,12 @@ The complex views.
 
 ```typescript
 // $lib/api/client.ts
-const API_BASE = env.GOFOLIO_API_URL; // e.g. http://gofolio-api:3334
+// Browser and SvelteKit loaders/actions call gofolio-web only.
+// gofolio-web forwards to gofolio-api server-side.
+const API_BASE = '/api/v1';
 
 export async function api(path: string, options?: RequestInit) {
-  const res = await fetch(`${API_BASE}/api/v1${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -272,15 +284,14 @@ export const getAccounts = () => api('/account');
 // ...
 ```
 
-Server-side loaders pass the JWT:
+Server-side loaders call same-origin API routes; JWT cookie is forwarded server-side:
 
 ```typescript
 // routes/(app)/home/+page.server.ts
-export async function load({ cookies }) {
-  const token = cookies.get('jwt');
+export async function load({ fetch }) {
   const [holdings, summary] = await Promise.all([
-    api('/portfolio/holdings', { headers: { Authorization: `Bearer ${token}` } }),
-    api('/portfolio/performance?range=max', { headers: { Authorization: `Bearer ${token}` } }),
+    fetch('/api/v1/portfolio/holdings').then((r) => r.json()),
+    fetch('/api/v1/portfolio/performance?range=max').then((r) => r.json())
   ]);
   return { holdings, summary };
 }
@@ -289,21 +300,22 @@ export async function load({ cookies }) {
 ## Auth Flow
 
 ```
-Browser → gofolio-web → gofolio-api
+Browser → gofolio-web → gofolio-api → db
   1. User visits /auth
   2. Submits token → gofolio-web POST /auth/login (form action)
   3. Server action calls gofolio-api POST /api/v1/auth/anonymous
   4. gofolio-api returns JWT
   5. gofolio-web sets httpOnly cookie with JWT
   6. Redirects to /home
-  7. All subsequent server loaders read cookie, forward JWT to gofolio-api
-  8. Client-side navigation: SvelteKit fetches loaders via internal __data.json
+  7. All subsequent requests from browser go to gofolio-web only (`/api/v1/*` or page loads)
+  8. gofolio-web server reads cookie and forwards JWT to gofolio-api
+  9. Client-side navigation: SvelteKit fetches loaders via internal __data.json
 ```
 
 Benefits over current approach:
 - JWT never exposed to client JS (httpOnly cookie)
 - No localStorage token storage
-- No CORS (browser only talks to gofolio-web)
+- No CORS complexity (browser only talks to gofolio-web)
 - SSR works (server has the token)
 
 ## Visual Identity
@@ -311,6 +323,7 @@ Benefits over current approach:
 **Goal: the rewritten app should be visually indistinguishable from the original Ghostfolio.**
 
 This is a technology rewrite, not a redesign. Same colors, same layout, same spacing, same component look-and-feel. A user switching between the Angular and SvelteKit versions should not notice a difference.
+Implementation details may differ as long as visual and interaction outcomes remain equivalent.
 
 ### What stays the same
 
