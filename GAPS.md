@@ -39,9 +39,9 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 ## 4. Home Summary Parity
 
-- Align `PortfolioSummary` card internals with Ghostfolio summary component semantics.
-- Add any missing summary fields, grouping, and edit interactions (e.g., emergency fund setting interactions where supported).
-- Match summary loading states and permission-dependent variants.
+- [x] Align `PortfolioSummary` card internals closer to Ghostfolio summary semantics.
+- [x] Add missing summary fields/grouping and emergency fund setting update interaction (`?/emergencyFund`).
+- [x] Match summary loading and permission-dependent variant behavior for editable settings.
 
 ## 5. Home Watchlist Parity
 

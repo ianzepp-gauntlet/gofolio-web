@@ -33,6 +33,28 @@
 
 	<Card.Root>
 		<Card.Header class="pb-2">
+			<Card.Description>Total Buy</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<p class="text-2xl font-bold">
+				<Value value={summary.totalBuy} currency={baseCurrency} />
+			</p>
+		</Card.Content>
+	</Card.Root>
+
+	<Card.Root>
+		<Card.Header class="pb-2">
+			<Card.Description>Total Sell</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<p class="text-2xl font-bold">
+				<Value value={summary.totalSell} currency={baseCurrency} />
+			</p>
+		</Card.Content>
+	</Card.Root>
+
+	<Card.Root>
+		<Card.Header class="pb-2">
 			<Card.Description>Current Value</Card.Description>
 		</Card.Header>
 		<Card.Content>
@@ -130,12 +152,54 @@
 		</Card.Content>
 	</Card.Root>
 
+	<Card.Root>
+		<Card.Header class="pb-2">
+			<Card.Description>Excluded Accounts & Activities</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<p class="text-2xl font-bold">
+				<Value value={summary.excludedAccountsAndActivities} currency={baseCurrency} />
+			</p>
+		</Card.Content>
+	</Card.Root>
+
+	<Card.Root>
+		<Card.Header class="pb-2">
+			<Card.Description>Liabilities</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<p class="text-2xl font-bold">
+				<Value value={summary.liabilitiesInBaseCurrency} currency={baseCurrency} />
+			</p>
+		</Card.Content>
+	</Card.Root>
+
 	{#if emergencyFundPercent != null}
 		<Card.Root class="sm:col-span-2 lg:col-span-3">
 			<Card.Header class="pb-2">
 				<Card.Description>Emergency Fund</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-2">
+				<div class="grid gap-2 sm:grid-cols-3">
+					<div>
+						<p class="text-muted-foreground text-xs">Target</p>
+						<p class="font-semibold">
+							<Value value={summary.emergencyFund?.total ?? 0} currency={baseCurrency} />
+						</p>
+					</div>
+					<div>
+						<p class="text-muted-foreground text-xs">Cash</p>
+						<p class="font-semibold">
+							<Value value={summary.emergencyFund?.cash ?? 0} currency={baseCurrency} />
+						</p>
+					</div>
+					<div>
+						<p class="text-muted-foreground text-xs">Assets</p>
+						<p class="font-semibold">
+							<Value value={summary.emergencyFund?.assets ?? 0} currency={baseCurrency} />
+						</p>
+					</div>
+				</div>
 				<Progress value={emergencyFundPercent} />
 				<p class="text-muted-foreground text-sm">
 					{emergencyFundPercent.toFixed(0)}% funded
