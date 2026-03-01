@@ -88,8 +88,8 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 ## 11. Admin Surface Coverage (If In Scope)
 
-- Admin overview/jobs/market-data/settings/users pages and tabs.
-- Permission-gated navigation and components.
+- [~] Admin overview/jobs/market-data/settings/users pages and tabs scaffolded.
+- [x] Permission-gated admin routing/navigation implemented (`accessAdminControl` guard).
 
 ## 12. Public/Marketing/Docs Surfaces (If In Scope)
 
