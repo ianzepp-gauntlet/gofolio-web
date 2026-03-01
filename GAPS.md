@@ -45,10 +45,10 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 ## 5. Home Watchlist Parity
 
-- Add create-watchlist flow (FAB + dialog + add action).
-- Add delete flow and row-level action menus.
-- Add benchmark detail dialog behavior when row clicked.
-- Match permission and impersonation-driven UI states.
+- [x] Add create-watchlist flow (FAB + dialog + `?/create` action to `/api/v1/watchlist`).
+- [x] Add delete flow and row-level action menu.
+- [x] Add benchmark detail dialog behavior when row clicked (query-param driven detail modal with asset history chart).
+- [~] Match permission and impersonation-driven UI states (permission + restricted view gating done; impersonation-specific gating still pending due missing impersonation context in the current app shell).
 
 ## 6. Home Markets Parity
 
