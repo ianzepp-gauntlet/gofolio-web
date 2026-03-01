@@ -80,7 +80,7 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
   - X-Ray
   - Analysis
 - [x] Recreate shared portfolio layout/tab structure.
-- [~] Port critical dialogs and flows tied to these views (pages are now data-backed, but advanced dialogs/filters/import flows are still pending).
+- [~] Port critical dialogs and flows tied to these views (activities create/update/delete baseline implemented; advanced import/filter/detail parity still pending).
 
 ## 10. User Account / Settings Coverage
 

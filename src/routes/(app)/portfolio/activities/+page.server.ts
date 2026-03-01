@@ -63,6 +63,123 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
 };
 
 export const actions: Actions = {
+	createActivity: async ({ request, locals, url }) => {
+		const token = locals.token;
+		if (!token) {
+			return fail(401, { action: 'createActivity', error: 'Not authenticated.' });
+		}
+
+		const data = await request.formData();
+		const date = data.get('date');
+		const type = data.get('type');
+		const symbol = data.get('symbol');
+		const dataSource = data.get('dataSource');
+		const currency = data.get('currency');
+		const quantity = Number(data.get('quantity') ?? 0);
+		const unitPrice = Number(data.get('unitPrice') ?? 0);
+		const fee = Number(data.get('fee') ?? 0);
+		const accountId = data.get('accountId');
+		const comment = data.get('comment');
+
+		if (
+			typeof date !== 'string' ||
+			typeof type !== 'string' ||
+			typeof symbol !== 'string' ||
+			typeof dataSource !== 'string' ||
+			typeof currency !== 'string'
+		) {
+			return fail(400, { action: 'createActivity', error: 'Missing required fields.' });
+		}
+
+		const payload = {
+			accountId: typeof accountId === 'string' && accountId ? accountId : undefined,
+			comment: typeof comment === 'string' && comment ? comment : undefined,
+			currency,
+			dataSource,
+			date: new Date(date).toISOString(),
+			fee,
+			quantity,
+			symbol: symbol.toUpperCase(),
+			type,
+			unitPrice
+		};
+
+		const res = await fetch(`${API_URL}/api/v1/order`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`
+			},
+			body: JSON.stringify(payload)
+		});
+
+		if (!res.ok) {
+			return fail(res.status, { action: 'createActivity', error: 'Unable to create activity.' });
+		}
+
+		const query = url.searchParams.toString();
+		redirect(303, `/portfolio/activities${query ? `?${query}` : ''}`);
+	},
+	updateActivity: async ({ request, locals, url }) => {
+		const token = locals.token;
+		if (!token) {
+			return fail(401, { action: 'updateActivity', error: 'Not authenticated.' });
+		}
+
+		const data = await request.formData();
+		const id = data.get('id');
+		const date = data.get('date');
+		const type = data.get('type');
+		const symbol = data.get('symbol');
+		const dataSource = data.get('dataSource');
+		const currency = data.get('currency');
+		const quantity = Number(data.get('quantity') ?? 0);
+		const unitPrice = Number(data.get('unitPrice') ?? 0);
+		const fee = Number(data.get('fee') ?? 0);
+		const accountId = data.get('accountId');
+		const comment = data.get('comment');
+
+		if (
+			typeof id !== 'string' ||
+			typeof date !== 'string' ||
+			typeof type !== 'string' ||
+			typeof symbol !== 'string' ||
+			typeof dataSource !== 'string' ||
+			typeof currency !== 'string'
+		) {
+			return fail(400, { action: 'updateActivity', error: 'Missing required fields.' });
+		}
+
+		const payload = {
+			id,
+			accountId: typeof accountId === 'string' && accountId ? accountId : undefined,
+			comment: typeof comment === 'string' && comment ? comment : undefined,
+			currency,
+			dataSource,
+			date: new Date(date).toISOString(),
+			fee,
+			quantity,
+			symbol: symbol.toUpperCase(),
+			type,
+			unitPrice
+		};
+
+		const res = await fetch(`${API_URL}/api/v1/order/${id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`
+			},
+			body: JSON.stringify(payload)
+		});
+
+		if (!res.ok) {
+			return fail(res.status, { action: 'updateActivity', error: 'Unable to update activity.' });
+		}
+
+		const query = url.searchParams.toString();
+		redirect(303, `/portfolio/activities${query ? `?${query}` : ''}`);
+	},
 	deleteActivity: async ({ request, locals, url }) => {
 		const token = locals.token;
 		if (!token) {
