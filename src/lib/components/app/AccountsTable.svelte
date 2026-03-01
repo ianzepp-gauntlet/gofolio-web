@@ -11,16 +11,20 @@
 	}
 
 	let { accounts, baseCurrency, totalValue, totalBalance }: Props = $props();
+	let totalActivities = $derived.by(() =>
+		accounts.reduce((sum, account) => sum + (account.activitiesCount ?? 0), 0)
+	);
 </script>
 
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
 			<Table.Head>Name</Table.Head>
-			<Table.Head class="hidden sm:table-cell">Platform</Table.Head>
+			<Table.Head class="hidden lg:table-cell">Platform</Table.Head>
+			<Table.Head class="text-right">Activities</Table.Head>
 			<Table.Head class="text-right">Balance</Table.Head>
 			<Table.Head class="text-right">Value</Table.Head>
-			<Table.Head class="hidden text-right sm:table-cell">Currency</Table.Head>
+			<Table.Head class="hidden text-right lg:table-cell">Currency</Table.Head>
 			<Table.Head class="text-right">Allocation</Table.Head>
 		</Table.Row>
 	</Table.Header>
@@ -28,23 +32,24 @@
 		{#each accounts as account (account.id)}
 			<Table.Row class="odd:bg-background even:bg-muted/30 hover:bg-muted/60">
 				<Table.Cell class="font-medium">{account.name}</Table.Cell>
-				<Table.Cell class="hidden sm:table-cell">
+				<Table.Cell class="hidden lg:table-cell">
 					{account.platform?.name ?? '-'}
 				</Table.Cell>
+				<Table.Cell class="text-right">{account.activitiesCount}</Table.Cell>
 				<Table.Cell class="text-right">
 					<Value value={account.balance} currency={account.currency} />
 				</Table.Cell>
 				<Table.Cell class="text-right">
 					<Value value={account.valueInBaseCurrency} currency={baseCurrency} />
 				</Table.Cell>
-				<Table.Cell class="hidden text-right sm:table-cell">{account.currency}</Table.Cell>
+				<Table.Cell class="hidden text-right lg:table-cell">{account.currency}</Table.Cell>
 				<Table.Cell class="text-right">
 					<Value value={account.allocationInPercentage} type="percent" />
 				</Table.Cell>
 			</Table.Row>
 		{:else}
 			<Table.Row>
-				<Table.Cell colspan={6} class="text-muted-foreground py-8 text-center">
+				<Table.Cell colspan={7} class="text-muted-foreground py-8 text-center">
 					No accounts found.
 				</Table.Cell>
 			</Table.Row>
@@ -54,14 +59,15 @@
 		<Table.Footer>
 			<Table.Row>
 				<Table.Cell class="font-bold">Total</Table.Cell>
-				<Table.Cell class="hidden sm:table-cell"></Table.Cell>
+				<Table.Cell class="hidden lg:table-cell"></Table.Cell>
+				<Table.Cell class="text-right font-bold">{totalActivities}</Table.Cell>
 				<Table.Cell class="text-right font-bold">
 					<Value value={totalBalance} currency={baseCurrency} />
 				</Table.Cell>
 				<Table.Cell class="text-right font-bold">
 					<Value value={totalValue} currency={baseCurrency} />
 				</Table.Cell>
-				<Table.Cell class="hidden sm:table-cell"></Table.Cell>
+				<Table.Cell class="hidden lg:table-cell"></Table.Cell>
 				<Table.Cell class="text-right font-bold">
 					<Value value={1} type="percent" />
 				</Table.Cell>
