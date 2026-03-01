@@ -78,8 +78,11 @@ export interface PortfolioPerformanceResponse {
 export interface PortfolioPosition {
 	allocationInPercentage: number;
 	assetClass?: string;
+	assetClassLabel?: string;
 	assetSubClass?: string;
+	assetSubClassLabel?: string;
 	currency: string;
+	dateOfFirstActivity?: string;
 	exchange?: string;
 	grossPerformance: number;
 	grossPerformancePercent: number;
@@ -98,6 +101,7 @@ export interface PortfolioPosition {
 	valueInBaseCurrency?: number;
 	valueInPercentage?: number;
 	dataSource?: string;
+	value?: number;
 }
 
 export interface PortfolioHoldingsResponse {

@@ -31,11 +31,11 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 ## 3. Home Holdings Parity
 
-- Add view-mode switching (table vs treemap chart) with permission gates.
-- Add holding-type toggle (`ACTIVE` / `CLOSED`) and corresponding query/filter behavior.
-- Add row click behavior for holding detail dialogs.
-- Implement any remaining columns/visibility rules present in Ghostfolio's `gf-holdings-table`.
-- Add “Show all” behavior/pagination pattern where applicable.
+- [x] Add view-mode switching (table vs chart-style treemap cards) with permission gates.
+- [x] Add holding-type toggle (`ACTIVE` / `CLOSED`) and corresponding query/filter behavior.
+- [x] Add row click behavior for holding detail dialogs.
+- [x] Implement key missing columns/visibility rules from `gf-holdings-table` (first activity, quantity/value desktop columns, allocation/change/performance).
+- [x] Add “Show all” behavior/pagination pattern for holdings table.
 
 ## 4. Home Summary Parity
 

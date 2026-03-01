@@ -1,69 +1,73 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
 	import Value from './Value.svelte';
 	import type { PortfolioPosition } from '$lib/types/api';
-	import { ArrowUp, ArrowDown } from '@lucide/svelte';
+	import { ArrowDown, ArrowUp } from '@lucide/svelte';
+	import { Button } from '$lib/components/ui/button';
 
 	interface Props {
 		holdings: PortfolioPosition[];
 		baseCurrency: string;
+		onHoldingClick?: (holding: PortfolioPosition) => void;
+		pageSize?: number;
 	}
 
-	let { holdings, baseCurrency }: Props = $props();
+	let { holdings, baseCurrency, onHoldingClick, pageSize = 20 }: Props = $props();
 
 	type SortKey =
 		| 'name'
-		| 'assetClass'
-		| 'currency'
-		| 'marketPrice'
-		| 'change'
-		| 'performance'
+		| 'dateOfFirstActivity'
+		| 'quantity'
+		| 'value'
 		| 'allocation'
-		| 'value';
-	let sortKey = $state<SortKey>('name');
-	let sortAsc = $state(true);
+		| 'change'
+		| 'performance';
+
+	let sortKey = $state<SortKey>('allocation');
+	let sortAsc = $state(false);
+	let expanded = $state(false);
 
 	function toggleSort(key: SortKey) {
 		if (sortKey === key) {
 			sortAsc = !sortAsc;
 		} else {
 			sortKey = key;
-			sortAsc = true;
+			sortAsc = key === 'name';
 		}
 	}
 
-	function getSortValue(h: PortfolioPosition, key: SortKey): number | string {
+	function sortValue(holding: PortfolioPosition, key: SortKey): number | string {
 		switch (key) {
 			case 'name':
-				return h.name.toLowerCase();
-			case 'assetClass':
-				return (h.assetClass ?? '').toLowerCase();
-			case 'currency':
-				return h.currency;
-			case 'marketPrice':
-				return h.marketPrice;
-			case 'performance':
-				return h.netPerformancePercentWithCurrencyEffect;
-			case 'change':
-				return h.netPerformanceWithCurrencyEffect;
-			case 'allocation':
-				return h.allocationInPercentage;
+				return holding.name?.toLowerCase() ?? '';
+			case 'dateOfFirstActivity':
+				return holding.dateOfFirstActivity ?? '';
+			case 'quantity':
+				return holding.quantity ?? 0;
 			case 'value':
-				return h.valueInBaseCurrency ?? 0;
+				return holding.valueInBaseCurrency ?? 0;
+			case 'allocation':
+				return holding.allocationInPercentage ?? 0;
+			case 'change':
+				return holding.netPerformanceWithCurrencyEffect ?? 0;
+			case 'performance':
+				return holding.netPerformancePercentWithCurrencyEffect ?? 0;
 		}
 	}
 
 	let sorted = $derived.by(() => {
-		const arr = [...holdings];
-		arr.sort((a, b) => {
-			const va = getSortValue(a, sortKey);
-			const vb = getSortValue(b, sortKey);
+		const list = [...holdings];
+		list.sort((a, b) => {
+			const va = sortValue(a, sortKey);
+			const vb = sortValue(b, sortKey);
 			const cmp = va < vb ? -1 : va > vb ? 1 : 0;
 			return sortAsc ? cmp : -cmp;
 		});
-		return arr;
+		return list;
 	});
+
+	let visible = $derived(expanded ? sorted : sorted.slice(0, pageSize));
+	let hasMore = $derived(sorted.length > pageSize && !expanded);
 </script>
 
 {#snippet sortHeader(label: string, key: SortKey)}
@@ -82,45 +86,50 @@
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head>{@render sortHeader('Name', 'name')}</Table.Head>
-			<Table.Head class="hidden md:table-cell"
-				>{@render sortHeader('Asset Class', 'assetClass')}</Table.Head
+			<Table.Head>Name</Table.Head>
+			<Table.Head class="hidden text-right lg:table-cell"
+				>{@render sortHeader('First Activity', 'dateOfFirstActivity')}</Table.Head
 			>
-			<Table.Head class="hidden sm:table-cell"
-				>{@render sortHeader('Currency', 'currency')}</Table.Head
+			<Table.Head class="hidden text-right lg:table-cell"
+				>{@render sortHeader('Quantity', 'quantity')}</Table.Head
 			>
-			<Table.Head class="text-right">{@render sortHeader('Price', 'marketPrice')}</Table.Head>
-			<Table.Head class="hidden text-right sm:table-cell"
-				>{@render sortHeader('Allocation', 'allocation')}</Table.Head
+			<Table.Head class="hidden text-right lg:table-cell"
+				>{@render sortHeader('Value', 'value')}</Table.Head
 			>
+			<Table.Head class="text-right">{@render sortHeader('Allocation', 'allocation')}</Table.Head>
 			<Table.Head class="text-right">{@render sortHeader('Change', 'change')}</Table.Head>
 			<Table.Head class="text-right">{@render sortHeader('Performance', 'performance')}</Table.Head>
-			<Table.Head class="text-right">{@render sortHeader('Value', 'value')}</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
-		<!--
-			Intentionally key by symbol for parity with the legacy API behavior.
-			The legacy backend effectively treats holdings as symbol-keyed data.
-		-->
-		{#each sorted as holding (holding.symbol)}
-			<Table.Row class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 cursor-pointer">
+		{#each visible as holding (holding.dataSource + ':' + holding.symbol)}
+			<Table.Row
+				class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 cursor-pointer"
+				onclick={() => onHoldingClick?.(holding)}
+			>
 				<Table.Cell class="font-medium">
 					<div class="leading-tight">
-						<div class="text-foreground truncate">{holding.name}</div>
+						<div class="text-foreground truncate">
+							{holding.name}
+							{#if holding.name === holding.symbol && holding.assetSubClassLabel}
+								({holding.assetSubClassLabel})
+							{/if}
+						</div>
 						<div class="text-muted-foreground text-xs">{holding.symbol}</div>
 					</div>
 				</Table.Cell>
-				<Table.Cell class="hidden md:table-cell">
-					{#if holding.assetClass}
-						<Badge variant="outline">{holding.assetClass}</Badge>
+				<Table.Cell class="hidden text-right lg:table-cell">
+					{#if holding.dateOfFirstActivity}
+						{new Date(holding.dateOfFirstActivity).toLocaleDateString()}
 					{/if}
 				</Table.Cell>
-				<Table.Cell class="hidden sm:table-cell">{holding.currency}</Table.Cell>
-				<Table.Cell class="text-right">
-					<Value value={holding.marketPrice} currency={holding.currency} />
+				<Table.Cell class="hidden text-right lg:table-cell">
+					<Value value={holding.quantity} currency={holding.currency} />
 				</Table.Cell>
-				<Table.Cell class="hidden text-right sm:table-cell">
+				<Table.Cell class="hidden text-right lg:table-cell">
+					<Value value={holding.valueInBaseCurrency} currency={baseCurrency} />
+				</Table.Cell>
+				<Table.Cell class="text-right">
 					<Value value={holding.allocationInPercentage} type="percent" />
 				</Table.Cell>
 				<Table.Cell class="text-right">
@@ -129,16 +138,19 @@
 				<Table.Cell class="text-right">
 					<Value value={holding.netPerformancePercentWithCurrencyEffect} type="percent" colorized />
 				</Table.Cell>
-				<Table.Cell class="text-right">
-					<Value value={holding.valueInBaseCurrency} currency={baseCurrency} />
-				</Table.Cell>
 			</Table.Row>
 		{:else}
 			<Table.Row>
-				<Table.Cell colspan={8} class="text-muted-foreground py-8 text-center">
+				<Table.Cell colspan={7} class="text-muted-foreground py-8 text-center">
 					No holdings found.
 				</Table.Cell>
 			</Table.Row>
 		{/each}
 	</Table.Body>
 </Table.Root>
+
+{#if hasMore}
+	<div class="my-3 text-center">
+		<Button variant="outline" onclick={() => (expanded = true)}>Show all</Button>
+	</div>
+{/if}
