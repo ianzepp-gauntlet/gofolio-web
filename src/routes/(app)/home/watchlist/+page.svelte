@@ -46,6 +46,10 @@
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
+		<!--
+			Intentionally key by symbol for parity with the legacy API behavior.
+			Known caveat: same symbol across data sources can collide upstream.
+		-->
 		{#each data.watchlist as item (item.symbol)}
 			{@const Icon50 = trendIcon(item.trend50d)}
 			{@const Icon200 = trendIcon(item.trend200d)}

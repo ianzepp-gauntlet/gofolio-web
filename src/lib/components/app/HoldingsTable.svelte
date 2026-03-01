@@ -95,6 +95,10 @@
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
+		<!--
+			Intentionally key by symbol for parity with the legacy API behavior.
+			The legacy backend effectively treats holdings as symbol-keyed data.
+		-->
 		{#each sorted as holding (holding.symbol)}
 			<Table.Row class="hover:bg-muted/50 cursor-pointer">
 				<Table.Cell class="font-medium">{holding.name}</Table.Cell>
