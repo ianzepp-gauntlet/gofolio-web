@@ -11,9 +11,9 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 ## Current Snapshot
 
 - Core shell + home tabs + accounts are implemented and visually aligned at a structural level.
-- Portfolio section work is underway: shared portfolio layout/tabs are in place and Activities now runs on live `/api/v1/order` data with create/update/delete baseline flows.
+- Portfolio section work is underway: shared portfolio layout/tabs are in place and Activities now runs on live `/api/v1/order` data with create/update/delete/clone, row-action menu, query/account filtering, and JSON dry-run/import baseline flows.
 - Account settings and admin surfaces now have permission-gated route scaffolds, with core settings update flow wired.
-- Remaining work is primarily deep interaction fidelity, component completeness, and advanced route/dialog coverage.
+- Remaining work is primarily strict Ghostfolio fidelity for advanced import/export behavior, component completeness, and additional route/dialog depth.
 
 ## 1. Navigation and Shell Fidelity
 
@@ -72,14 +72,14 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 ## 9. Portfolio Section Coverage (Major Missing Area)
 
 - [x] Implement portfolio routes/pages scaffold:
-  - [~] Activities page upgraded from placeholder to live `/api/v1/order` table (done: pagination, sorting, create/update/delete baseline, and detail dialog flow; pending: advanced import/filter parity).
+  - [~] Activities page upgraded from placeholder to live `/api/v1/order` table (done: pagination, sorting, query/account filtering baseline, create/update/delete/clone baseline, row action menu baseline, detail dialog flow, and JSON dry-run/import baseline; pending: full Ghostfolio import/export parity including CSV/dividend/multi-action top menu behavior).
   - Activities
   - Allocations
   - Fire
   - X-Ray
   - Analysis
 - [x] Recreate shared portfolio layout/tab structure.
-- [~] Port critical dialogs and flows tied to these views (done: activities create/update/delete/detail baseline; pending: advanced import/filter parity).
+- [~] Port critical dialogs and flows tied to these views (done: activities create/update/delete/clone/detail, row action menu, query/account filtering baseline, and JSON import dry-run flow; pending: full Ghostfolio import/export parity including CSV/dividend flows).
 
 ## 10. User Account / Settings Coverage
 
@@ -120,7 +120,7 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 ## Phase B (Core Product Surface)
 
 - Continue portfolio parity beyond scaffolded routes (Allocations/Fire/X-Ray/Analysis depth and controls).
-- Port high-usage dialogs and filtering systems (activities import/filter/detail parity and shared table behaviors).
+- Port high-usage dialogs and import systems (activities import parity and shared table behaviors).
 
 ## Phase C (Extended Surface)
 

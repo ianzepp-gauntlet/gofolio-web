@@ -1,13 +1,15 @@
 <script lang="ts">
 	import type { ActionData, PageData } from './$types';
+	import type { ActivityItem } from '$lib/types/api';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Table from '$lib/components/ui/table';
 	import Value from '$lib/components/app/Value.svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { X } from '@lucide/svelte';
+	import { Copy, Ellipsis, Pencil, Plus, Tablet, Trash2, X } from '@lucide/svelte';
 
 	interface HoldingDetailResponse {
 		SymbolProfile?: {
@@ -23,11 +25,24 @@
 		netPerformancePercentWithCurrencyEffect?: number;
 	}
 
+	interface ImportPayload {
+		activities: unknown[];
+		accounts?: unknown[];
+		assetProfiles?: unknown[];
+		tags?: unknown[];
+	}
+
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let baseCurrency = $derived(data.user?.settings?.baseCurrency ?? 'USD');
 	let totalPages = $derived(Math.max(1, Math.ceil((data.totalItems ?? 0) / data.take)));
 	let showCreateDialog = $derived($page.url.searchParams.get('createDialog') === 'true');
+	let showImportDialog = $derived($page.url.searchParams.get('importDialog') === 'true');
+	let queryFilter = $derived($page.url.searchParams.get('query') ?? '');
+	let accountFilter = $derived($page.url.searchParams.get('accounts') ?? '');
+	let canCreateActivity = $derived(
+		data.user.permissions.includes('createOrder') && !data.user.settings?.isRestrictedView
+	);
 	let activityIdFromQuery = $derived($page.url.searchParams.get('activityId'));
 	let selectedActivity = $derived.by(() =>
 		activityIdFromQuery
@@ -36,6 +51,9 @@
 	);
 	let showEditDialog = $derived(
 		$page.url.searchParams.get('editDialog') === 'true' && !!selectedActivity
+	);
+	let createSeedActivity = $derived(
+		showCreateDialog && activityIdFromQuery ? selectedActivity : undefined
 	);
 	let showHoldingDetailDialog = $derived(
 		$page.url.searchParams.get('holdingDetailDialog') === 'true'
@@ -46,9 +64,16 @@
 	let detailLoading = $state(false);
 	let detailError = $state<string | null>(null);
 	let detailData = $state<HoldingDetailResponse | null>(null);
+	let importFileName = $state<string | null>(null);
+	let importPayload = $state<ImportPayload | null>(null);
+	let previewActivities = $state<ActivityItem[]>([]);
+	let importError = $state<string | null>(null);
+	let dryRunLoading = $state(false);
+	let importInProgress = $state(false);
 
 	const dialogQueryKeys = new Set([
 		'createDialog',
+		'importDialog',
 		'editDialog',
 		'activityId',
 		'holdingDetailDialog',
@@ -83,6 +108,17 @@
 			.finally(() => {
 				detailLoading = false;
 			});
+	});
+
+	$effect(() => {
+		if (!showImportDialog) {
+			importFileName = null;
+			importPayload = null;
+			previewActivities = [];
+			importError = null;
+			dryRunLoading = false;
+			importInProgress = false;
+		}
 	});
 
 	function currentParamsObject(): Record<string, string> {
@@ -163,14 +199,179 @@
 			noScroll: true
 		});
 	}
+
+	function clearFiltersHref(): string {
+		const params = currentParamsWithoutDialogs();
+		delete params.query;
+		delete params.accounts;
+		params.page = '1';
+		return `/portfolio/activities?${encodeParams(params)}`;
+	}
+
+	function normalizeImportPayload(parsed: unknown): ImportPayload | null {
+		if (Array.isArray(parsed)) {
+			return { activities: parsed };
+		}
+
+		if (parsed && typeof parsed === 'object') {
+			const obj = parsed as Record<string, unknown>;
+			if (Array.isArray(obj.activities)) {
+				return {
+					activities: obj.activities,
+					accounts: Array.isArray(obj.accounts) ? obj.accounts : undefined,
+					assetProfiles: Array.isArray(obj.assetProfiles) ? obj.assetProfiles : undefined,
+					tags: Array.isArray(obj.tags) ? obj.tags : undefined
+				};
+			}
+		}
+
+		return null;
+	}
+
+	async function onImportFileChange(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+
+		if (!file) {
+			return;
+		}
+
+		importError = null;
+		previewActivities = [];
+		importPayload = null;
+		importFileName = file.name;
+
+		if (!file.name.toLowerCase().endsWith('.json')) {
+			importError = 'Only JSON import files are supported in this phase.';
+			return;
+		}
+
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(await file.text());
+		} catch {
+			importError = 'Unable to parse JSON file.';
+			return;
+		}
+
+		const payload = normalizeImportPayload(parsed);
+		if (!payload || payload.activities.length === 0) {
+			importError = 'Import file must contain an activities array.';
+			return;
+		}
+
+		dryRunLoading = true;
+		try {
+			const response = await fetch('/api/v1/import?dryRun=true', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+
+			if (!response.ok) {
+				throw new Error(await response.text());
+			}
+
+			const dryRunResult = (await response.json()) as { activities?: ActivityItem[] };
+			previewActivities = dryRunResult.activities ?? [];
+			importPayload = payload;
+		} catch {
+			importError = 'Dry run failed. Please verify your import file.';
+			importPayload = null;
+			previewActivities = [];
+		} finally {
+			dryRunLoading = false;
+		}
+	}
+
+	async function confirmImport() {
+		if (!importPayload) {
+			return;
+		}
+
+		importError = null;
+		importInProgress = true;
+		try {
+			const response = await fetch('/api/v1/import?dryRun=false', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(importPayload)
+			});
+
+			if (!response.ok) {
+				throw new Error(await response.text());
+			}
+
+			const params = encodeParams(currentParamsWithoutDialogs());
+			await goto(`/portfolio/activities${params ? `?${params}` : ''}`, {
+				replaceState: true,
+				keepFocus: true,
+				noScroll: true,
+				invalidateAll: true
+			});
+		} catch {
+			importError = 'Import failed. Please try again.';
+		} finally {
+			importInProgress = false;
+		}
+	}
+
+	function submitDelete(activityId: string) {
+		const form = document.getElementById(`delete-activity-${activityId}`) as HTMLFormElement | null;
+		form?.requestSubmit();
+	}
 </script>
 
 <div class="space-y-4">
-	<div class="flex items-center justify-between gap-3">
-		<h1 class="text-xl font-semibold">Activities</h1>
-		<div class="flex items-center gap-2">
-			<a href={dialogHref({ createDialog: 'true' })}><Button>Create Activity...</Button></a>
+	<h1 class="text-xl font-semibold">Activities</h1>
+
+	{#if canCreateActivity}
+		<div class="flex justify-end">
+			<a href={dialogHref({ importDialog: 'true' })}>
+				<Button variant="outline">Import Activities...</Button>
+			</a>
 		</div>
+	{/if}
+
+	<div class="bg-muted/20 border-border rounded-md border p-3">
+		<form
+			method="GET"
+			action="/portfolio/activities"
+			class="grid gap-2 md:grid-cols-[1fr_220px_auto]"
+		>
+			<input type="hidden" name="page" value="1" />
+			<input type="hidden" name="take" value={String(data.take)} />
+			<input type="hidden" name="sortColumn" value={data.sortColumn} />
+			<input type="hidden" name="sortDirection" value={data.sortDirection} />
+			<div class="space-y-1">
+				<Label for="activitiesQuery">Search</Label>
+				<Input
+					id="activitiesQuery"
+					name="query"
+					placeholder="Symbol, name, note"
+					value={queryFilter}
+				/>
+			</div>
+			<div class="space-y-1">
+				<Label for="activitiesAccount">Account</Label>
+				<select
+					id="activitiesAccount"
+					name="accounts"
+					class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
+				>
+					<option value="">All accounts</option>
+					{#each data.user.accounts as account (account.id)}
+						<option value={account.id} selected={account.id === accountFilter}
+							>{account.name}</option
+						>
+					{/each}
+				</select>
+			</div>
+			<div class="flex items-end gap-2">
+				<Button type="submit" variant="outline">Apply</Button>
+				<a href={clearFiltersHref()}><Button type="button" variant="ghost">Clear</Button></a>
+			</div>
+		</form>
 	</div>
 
 	<Table.Root>
@@ -187,7 +388,7 @@
 				<Table.Head class="text-right"
 					><a href={sortHref('valueInBaseCurrency')}>Value</a></Table.Head
 				>
-				<Table.Head class="w-20 text-center">Actions</Table.Head>
+				<Table.Head class="w-12 text-center">Actions</Table.Head>
 			</Table.Row>
 		</Table.Header>
 		<Table.Body>
@@ -220,18 +421,57 @@
 						<Value value={activity.valueInBaseCurrency ?? 0} currency={baseCurrency} />
 					</Table.Cell>
 					<Table.Cell class="text-center" onclick={(event) => event.stopPropagation()}>
-						<div class="flex items-center justify-center gap-1">
-							{#if canOpenHolding(activity)}
-								<a href={holdingDetailHref(activity.dataSource!, activity.symbol!)}>
-									<Button variant="ghost" size="sm">View Holding...</Button>
-								</a>
-							{/if}
-							<a href={editHref(activity.id)}><Button variant="ghost" size="sm">Edit</Button></a>
-							<form method="POST" action="?/deleteActivity">
-								<input type="hidden" name="activityId" value={activity.id} />
-								<Button type="submit" variant="ghost" size="sm">Delete</Button>
-							</form>
-						</div>
+						<form
+							method="POST"
+							action="?/deleteActivity"
+							id={`delete-activity-${activity.id}`}
+							class="hidden"
+						>
+							<input type="hidden" name="activityId" value={activity.id} />
+						</form>
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger
+								class="hover:bg-accent hover:text-accent-foreground inline-flex h-8 w-8 items-center justify-center rounded-md"
+							>
+								<Ellipsis class="size-4" />
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="end" class="w-48">
+								{#if canOpenHolding(activity)}
+									<DropdownMenu.Item
+										onclick={() =>
+											void goto(holdingDetailHref(activity.dataSource!, activity.symbol!), {
+												keepFocus: true,
+												noScroll: true
+											})}
+									>
+										<Tablet class="size-4" />
+										View Holding...
+									</DropdownMenu.Item>
+								{/if}
+								<DropdownMenu.Item
+									onclick={() =>
+										void goto(editHref(activity.id), { keepFocus: true, noScroll: true })}
+								>
+									<Pencil class="size-4" />
+									Edit...
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									onclick={() =>
+										void goto(dialogHref({ createDialog: 'true', activityId: activity.id }), {
+											keepFocus: true,
+											noScroll: true
+										})}
+								>
+									<Copy class="size-4" />
+									Clone...
+								</DropdownMenu.Item>
+								<DropdownMenu.Separator />
+								<DropdownMenu.Item variant="destructive" onclick={() => submitDelete(activity.id)}>
+									<Trash2 class="size-4" />
+									Delete
+								</DropdownMenu.Item>
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
 					</Table.Cell>
 				</Table.Row>
 			{:else}
@@ -264,25 +504,134 @@
 	</div>
 </div>
 
+{#if canCreateActivity}
+	<div class="fixed right-6 bottom-6 z-40">
+		<a href={dialogHref({ createDialog: 'true' })}>
+			<Button size="icon-lg" class="rounded-full shadow-lg">
+				<Plus class="size-5" />
+				<span class="sr-only">Create Activity</span>
+			</Button>
+		</a>
+	</div>
+{/if}
+
+{#if showImportDialog}
+	<div
+		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+	>
+		<div class="bg-background border-border w-full max-w-3xl rounded-lg border p-5 shadow-xl">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-lg font-semibold">Import Activities</h2>
+				<Button variant="ghost" size="icon-sm" onclick={closeDialogs}><X class="size-4" /></Button>
+			</div>
+
+			<div class="space-y-3">
+				<div class="space-y-1">
+					<Label for="importActivitiesFile">Select JSON File</Label>
+					<Input
+						id="importActivitiesFile"
+						type="file"
+						accept=".json,application/json"
+						onchange={onImportFileChange}
+					/>
+				</div>
+
+				{#if importFileName}
+					<p class="text-muted-foreground text-sm">Selected: {importFileName}</p>
+				{/if}
+
+				{#if dryRunLoading}
+					<p class="text-muted-foreground text-sm">Validating import file...</p>
+				{/if}
+
+				{#if importError}
+					<p class="text-destructive text-sm">{importError}</p>
+				{/if}
+
+				{#if importPayload}
+					<div class="bg-muted/20 border-border rounded-md border p-3">
+						<p class="text-sm font-medium">Dry run preview</p>
+						<p class="text-muted-foreground text-sm">
+							{previewActivities.length} activities ready to import.
+						</p>
+						<div class="mt-3 overflow-x-auto">
+							<table class="w-full text-sm">
+								<thead>
+									<tr class="text-muted-foreground border-border border-b text-left">
+										<th class="py-1 pr-3">Date</th>
+										<th class="py-1 pr-3">Type</th>
+										<th class="py-1 pr-3">Symbol</th>
+										<th class="py-1 text-right">Value</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each previewActivities.slice(0, 10) as activity (activity.id ?? `${activity.date}-${activity.symbol}`)}
+										<tr class="border-border border-b last:border-b-0">
+											<td class="py-1 pr-3">{new Date(activity.date).toLocaleDateString()}</td>
+											<td class="py-1 pr-3">{activity.type ?? '-'}</td>
+											<td class="py-1 pr-3">{activity.symbol ?? '-'}</td>
+											<td class="py-1 text-right">
+												<Value
+													value={activity.valueInBaseCurrency ?? activity.value ?? 0}
+													currency={baseCurrency}
+												/>
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+						{#if previewActivities.length > 10}
+							<p class="text-muted-foreground mt-2 text-xs">
+								Showing first 10 activities from the dry run preview.
+							</p>
+						{/if}
+					</div>
+				{/if}
+			</div>
+
+			<div class="mt-4 flex justify-end gap-2">
+				<Button type="button" variant="ghost" onclick={closeDialogs}>Cancel</Button>
+				<Button
+					type="button"
+					onclick={confirmImport}
+					disabled={!importPayload || dryRunLoading || importInProgress}
+				>
+					{importInProgress ? 'Importing...' : 'Import'}
+				</Button>
+			</div>
+		</div>
+	</div>
+{/if}
+
 {#if showCreateDialog}
 	<div
 		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
 	>
 		<div class="bg-background border-border w-full max-w-xl rounded-lg border p-5 shadow-xl">
 			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-lg font-semibold">Create Activity</h2>
+				<h2 class="text-lg font-semibold">
+					{createSeedActivity ? 'Clone Activity' : 'Create Activity'}
+				</h2>
 				<Button variant="ghost" size="icon-sm" onclick={closeDialogs}><X class="size-4" /></Button>
 			</div>
 			<form method="POST" action="?/createActivity" class="grid gap-3 md:grid-cols-2">
 				<div class="space-y-1">
 					<Label for="createDate">Date</Label>
-					<Input id="createDate" name="date" type="date" required />
+					<Input
+						id="createDate"
+						name="date"
+						type="date"
+						value={new Date().toISOString().slice(0, 10)}
+						required
+					/>
 				</div>
 				<div class="space-y-1">
 					<Label for="createType">Type</Label>
 					<select
 						id="createType"
 						name="type"
+						value={createSeedActivity?.type ?? 'BUY'}
 						class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
 					>
 						<option value="BUY">BUY</option>
@@ -295,15 +644,31 @@
 				</div>
 				<div class="space-y-1">
 					<Label for="createSymbol">Symbol</Label>
-					<Input id="createSymbol" name="symbol" placeholder="AAPL" required />
+					<Input
+						id="createSymbol"
+						name="symbol"
+						placeholder="AAPL"
+						value={createSeedActivity?.symbol ?? ''}
+						required
+					/>
 				</div>
 				<div class="space-y-1">
 					<Label for="createDataSource">Data Source</Label>
-					<Input id="createDataSource" name="dataSource" value="YAHOO" required />
+					<Input
+						id="createDataSource"
+						name="dataSource"
+						value={createSeedActivity?.dataSource ?? 'YAHOO'}
+						required
+					/>
 				</div>
 				<div class="space-y-1">
 					<Label for="createCurrency">Currency</Label>
-					<Input id="createCurrency" name="currency" value={baseCurrency} required />
+					<Input
+						id="createCurrency"
+						name="currency"
+						value={createSeedActivity?.currency ?? baseCurrency}
+						required
+					/>
 				</div>
 				<div class="space-y-1">
 					<Label for="createAccountId">Account</Label>
@@ -314,7 +679,9 @@
 					>
 						<option value="">No account</option>
 						{#each data.user.accounts as account (account.id)}
-							<option value={account.id}>{account.name}</option>
+							<option value={account.id} selected={account.id === createSeedActivity?.accountId}>
+								{account.name}
+							</option>
 						{/each}
 					</select>
 				</div>
@@ -325,7 +692,7 @@
 						name="quantity"
 						type="number"
 						step="0.000001"
-						value="0"
+						value={String(createSeedActivity?.quantity ?? 0)}
 						required
 					/>
 				</div>

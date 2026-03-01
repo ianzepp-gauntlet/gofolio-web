@@ -13,6 +13,8 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
 	const take = Math.max(1, Number(url.searchParams.get('take') ?? 25));
 	const sortColumn = url.searchParams.get('sortColumn') ?? 'date';
 	const sortDirection = url.searchParams.get('sortDirection') === 'asc' ? 'asc' : 'desc';
+	const query = url.searchParams.get('query')?.trim() ?? '';
+	const accounts = url.searchParams.get('accounts')?.trim() ?? '';
 
 	const params = new URLSearchParams({
 		range,
@@ -21,6 +23,14 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
 		sortColumn,
 		sortDirection
 	});
+
+	if (query) {
+		params.set('query', query);
+	}
+
+	if (accounts) {
+		params.set('accounts', accounts);
+	}
 
 	try {
 		const res = await fetch(`${API_URL}/api/v1/order?${params.toString()}`, {
@@ -37,7 +47,9 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
 				page,
 				take,
 				sortColumn,
-				sortDirection
+				sortDirection,
+				query,
+				accounts
 			};
 		}
 
@@ -48,7 +60,9 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
 			page,
 			take,
 			sortColumn,
-			sortDirection
+			sortDirection,
+			query,
+			accounts
 		};
 	} catch {
 		return {
@@ -57,7 +71,9 @@ export const load: PageServerLoad = async ({ locals, parent, url }) => {
 			page,
 			take,
 			sortColumn,
-			sortDirection
+			sortDirection,
+			query,
+			accounts
 		};
 	}
 };
