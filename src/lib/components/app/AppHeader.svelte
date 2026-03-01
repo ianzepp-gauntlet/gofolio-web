@@ -31,12 +31,19 @@
 		mobileMenuOpen = false;
 		void goto(path);
 	}
+
+	$effect(() => {
+		const pathname = $page.url.pathname;
+		if (pathname) {
+			mobileMenuOpen = false;
+		}
+	});
 </script>
 
 <header
 	class="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur"
 >
-	<div class="mx-auto flex h-14 w-full max-w-7xl items-center px-4 md:px-6">
+	<div class="mx-auto flex h-14 w-full max-w-6xl items-center px-4 md:px-6">
 		<!-- Logo -->
 		<a href="/home" class="mr-6 flex items-center space-x-2 text-lg font-bold"> Gofolio </a>
 

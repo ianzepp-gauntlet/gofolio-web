@@ -20,7 +20,7 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 - [~] Match header behavior exactly (active states and mobile drawer behavior improved; final spacing/icon token parity still pending).
 - [~] Add parity for account/user entry points and contextual actions in the header (overview/accounts/add-activity quick actions added; impersonation/resources/admin account-menu parity still pending).
-- Verify page container widths and breakpoints against Ghostfolio at mobile/tablet/desktop.
+- [~] Verify page container widths and breakpoints against Ghostfolio at mobile/tablet/desktop (global app shell container tightened to `max-w-6xl`; final breakpoint/token audit still pending).
 
 ## 2. Home Overview Parity
 
