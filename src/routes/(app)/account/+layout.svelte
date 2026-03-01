@@ -6,6 +6,7 @@
 
 	const tabs = [
 		{ href: '/account', label: 'Settings' },
+		{ href: '/account/membership', label: 'Membership' },
 		{ href: '/account/access', label: 'Access' }
 	];
 

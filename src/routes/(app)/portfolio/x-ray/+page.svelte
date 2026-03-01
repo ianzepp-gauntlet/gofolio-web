@@ -1,10 +1,41 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import * as Table from '$lib/components/ui/table';
+	import * as Card from '$lib/components/ui/card';
 	import Value from '$lib/components/app/Value.svelte';
+	import CheckCircle from '@lucide/svelte/icons/check-circle';
+	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
+	import XCircle from '@lucide/svelte/icons/x-circle';
 
 	let { data }: { data: PageData } = $props();
 
+	let baseCurrency = $derived(data.user?.settings?.baseCurrency ?? 'USD');
+
+	// Report rules
+	let report = $derived(data.report);
+
+	let ruleCategories = $derived.by(() => {
+		if (!report?.rules) return [];
+		return Object.entries(report.rules).map(([category, rules]) => ({
+			category,
+			rules: rules ?? []
+		}));
+	});
+
+	let activeRules = $derived.by(() => {
+		return ruleCategories.flatMap((c) => c.rules).filter((r) => r.isActive);
+	});
+
+	let fulfilledCount = $derived.by(() => {
+		return activeRules.filter((r) => r.value === true).length;
+	});
+
+	let totalActiveCount = $derived(activeRules.length);
+
+	let inactiveRules = $derived.by(() => {
+		return ruleCategories.flatMap((c) => c.rules).filter((r) => !r.isActive);
+	});
+
+	// Asset class breakdown (keep existing analysis)
 	let assetClassRows = $derived.by(() => {
 		const buckets: Record<string, { value: number; allocation: number }> = {};
 		for (const holding of Object.values(data.details?.holdings ?? {})) {
@@ -21,32 +52,109 @@
 	});
 </script>
 
-<div class="space-y-4">
-	<h1 class="text-xl font-semibold">X-Ray</h1>
-	<Table.Root>
-		<Table.Header>
-			<Table.Row>
-				<Table.Head>Asset Class</Table.Head>
-				<Table.Head class="text-right">Value</Table.Head>
-				<Table.Head class="text-right">Allocation</Table.Head>
-			</Table.Row>
-		</Table.Header>
-		<Table.Body>
-			{#each assetClassRows as row (row.assetClass)}
-				<Table.Row class="odd:bg-background even:bg-muted/30">
-					<Table.Cell>{row.assetClass}</Table.Cell>
-					<Table.Cell class="text-right">
-						<Value value={row.value} currency={data.user?.settings?.baseCurrency ?? 'USD'} />
-					</Table.Cell>
-					<Table.Cell class="text-right"><Value value={row.allocation} type="percent" /></Table.Cell>
-				</Table.Row>
+<div class="space-y-6">
+	<!-- Rules Summary -->
+	{#if report}
+		<Card.Root>
+			<Card.Content class="py-4">
+				<div class="flex items-center gap-3">
+					{#if totalActiveCount === 0}
+						<span class="text-muted-foreground">No rules configured</span>
+					{:else if fulfilledCount === totalActiveCount}
+						<CheckCircle class="h-6 w-6 text-green-600" />
+						<span class="text-sm font-medium">
+							All {totalActiveCount} rules align with your portfolio
+						</span>
+					{:else}
+						<AlertTriangle class="h-6 w-6 text-yellow-600" />
+						<span class="text-sm font-medium">
+							{fulfilledCount} of {totalActiveCount} rules align with your portfolio
+						</span>
+					{/if}
+				</div>
+			</Card.Content>
+		</Card.Root>
+
+		<!-- Rule Categories -->
+		{#each ruleCategories as { category, rules } (category)}
+			{@const activeInCategory = rules.filter((r) => r.isActive)}
+			{#if activeInCategory.length > 0}
+				<Card.Root>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-sm font-medium capitalize">{category.replace(/_/g, ' ')}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						<div class="space-y-2">
+							{#each activeInCategory as rule (rule.key)}
+								<div class="flex items-start gap-2 rounded-md p-2 text-sm">
+									{#if rule.value === true}
+										<CheckCircle class="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+									{:else if rule.value === false}
+										<XCircle class="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+									{:else}
+										<AlertTriangle class="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" />
+									{/if}
+									<span>{rule.name}</span>
+								</div>
+							{/each}
+						</div>
+					</Card.Content>
+				</Card.Root>
+			{/if}
+		{/each}
+
+		<!-- Inactive Rules -->
+		{#if inactiveRules.length > 0}
+			<Card.Root>
+				<Card.Header class="pb-2">
+					<Card.Title class="text-muted-foreground text-sm font-medium">
+						Inactive Rules ({inactiveRules.length})
+					</Card.Title>
+				</Card.Header>
+				<Card.Content>
+					<div class="space-y-1">
+						{#each inactiveRules as rule (rule.key)}
+							<div class="text-muted-foreground flex items-center gap-2 p-1 text-sm">
+								<span class="h-4 w-4 shrink-0">—</span>
+								<span>{rule.name}</span>
+							</div>
+						{/each}
+					</div>
+				</Card.Content>
+			</Card.Root>
+		{/if}
+	{:else}
+		<p class="text-muted-foreground text-sm">Portfolio report not available.</p>
+	{/if}
+
+	<!-- Asset Class Breakdown (fallback/supplement) -->
+	<Card.Root>
+		<Card.Header class="pb-2">
+			<Card.Title class="text-sm font-medium">Asset Class Breakdown</Card.Title>
+		</Card.Header>
+		<Card.Content>
+			{#if assetClassRows.length === 0}
+				<p class="text-muted-foreground text-sm">No holdings data.</p>
 			{:else}
-				<Table.Row>
-					<Table.Cell colspan={3} class="text-muted-foreground py-8 text-center">
-						No holdings available for x-ray analysis.
-					</Table.Cell>
-				</Table.Row>
-			{/each}
-		</Table.Body>
-	</Table.Root>
+				<div class="space-y-2">
+					{#each assetClassRows as row (row.assetClass)}
+						<div class="space-y-1">
+							<div class="flex justify-between text-sm">
+								<span>{row.assetClass}</span>
+								<span class="text-muted-foreground">
+									<Value value={row.value} currency={baseCurrency} />
+								</span>
+							</div>
+							<div class="bg-muted h-2 rounded-full">
+								<div
+									class="bg-primary h-2 rounded-full"
+									style="width: {row.allocation * 100}%"
+								></div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</Card.Content>
+	</Card.Root>
 </div>

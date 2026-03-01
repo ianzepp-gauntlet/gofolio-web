@@ -234,6 +234,125 @@ export interface MarketDataOfMarketsResponse {
 	};
 }
 
+// Admin
+
+export interface AdminData {
+	activitiesCount: number;
+	dataProviders: Array<{
+		name: string;
+		assetProfileCount: number;
+		url?: string;
+	}>;
+	exchangeRates: Array<{ label: string; value: number }>;
+	settings: Record<string, string>;
+	userCount: number;
+	version: string;
+}
+
+export interface AdminJob {
+	id: string;
+	attemptsMade: number;
+	data: Record<string, unknown>;
+	failedReason?: string;
+	finishedOn?: number;
+	name: string;
+	opts: Record<string, unknown>;
+	processedOn?: number;
+	stacktrace?: string[];
+	timestamp: number;
+	status?: string;
+}
+
+export interface AdminMarketDataItem {
+	activitiesCount: number;
+	assetClass?: string;
+	assetSubClass?: string;
+	comment?: string;
+	countriesCount: number;
+	currency?: string;
+	dataSource: string;
+	date?: string;
+	isBenchmark?: boolean;
+	marketDataItemCount: number;
+	name: string;
+	sectorsCount: number;
+	symbol: string;
+}
+
+export interface AdminMarketDataResponse {
+	count: number;
+	marketData: AdminMarketDataItem[];
+}
+
+export interface AdminUserItem {
+	id: string;
+	accountCount: number;
+	activitiesCount: number;
+	alias?: string;
+	country?: string;
+	createdAt: string;
+	engagement?: number;
+	lastActivity?: string;
+	role?: string;
+}
+
+export interface PlatformItem {
+	id: string;
+	name: string;
+	url?: string;
+}
+
+export interface TagItem {
+	id: string;
+	name: string;
+	userId?: string;
+	activitiesCount?: number;
+}
+
+// Access
+
+export interface AccessItem {
+	alias?: string;
+	grantee?: string;
+	id: string;
+	permissions: string[];
+	type: 'PRIVATE' | 'PUBLIC';
+}
+
+// Portfolio Report (X-Ray)
+
+export interface PortfolioReportRule {
+	configuration?: Record<string, unknown>;
+	isActive: boolean;
+	key: string;
+	name: string;
+}
+
+export interface PortfolioReportResponse {
+	rules: Record<
+		string,
+		Array<{
+			isActive: boolean;
+			key: string;
+			name: string;
+			value?: boolean;
+			configuration?: Record<string, unknown>;
+		}>
+	>;
+}
+
+// Portfolio Investments / Dividends
+
+export interface InvestmentItem {
+	date: string;
+	investment: number;
+}
+
+export interface DividendItem {
+	date: string;
+	payment: number;
+}
+
 // Activities
 
 export interface ActivityItem {
