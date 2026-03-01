@@ -18,8 +18,8 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 ## 1. Navigation and Shell Fidelity
 
-- Match header behavior exactly (active states, spacing/size constants, mobile drawer behavior, icon sizing).
-- Add parity for account/user entry points and contextual actions in the header.
+- [~] Match header behavior exactly (active states and mobile drawer behavior improved; final spacing/icon token parity still pending).
+- [~] Add parity for account/user entry points and contextual actions in the header (overview/accounts/add-activity quick actions added; impersonation/resources/admin account-menu parity still pending).
 - Verify page container widths and breakpoints against Ghostfolio at mobile/tablet/desktop.
 
 ## 2. Home Overview Parity
@@ -65,7 +65,7 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 ## 8. Shared Table/Component Fidelity
 
-- Add entity/logo components where Ghostfolio surfaces logos.
+- [x] Add entity/logo components where Ghostfolio surfaces logos (holdings, watchlist, markets, accounts platform entries).
 - Implement consistent skeleton loaders for all list/table screens.
 - Ensure sticky columns, sorting behavior, and responsive column hiding match Ghostfolio.
 - Validate typography, paddings, and row heights against Ghostfolio UI tokens.

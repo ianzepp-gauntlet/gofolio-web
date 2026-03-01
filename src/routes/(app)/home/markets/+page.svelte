@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import Value from '$lib/components/app/Value.svelte';
+	import EntityLogo from '$lib/components/app/EntityLogo.svelte';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Table from '$lib/components/ui/table';
@@ -182,8 +183,16 @@
 						onclick={() => openDetailDialog(benchmark)}
 					>
 						<Table.Cell class="font-medium">
-							<div class="leading-tight">
-								<div class="text-foreground truncate">{benchmark.name}</div>
+							<div class="flex items-start gap-2 leading-tight">
+								<EntityLogo
+									dataSource={benchmark.dataSource}
+									symbol={benchmark.symbol}
+									name={benchmark.name}
+									size={18}
+								/>
+								<div class="min-w-0">
+									<div class="text-foreground truncate">{benchmark.name}</div>
+								</div>
 							</div>
 						</Table.Cell>
 						<Table.Cell class="text-center">

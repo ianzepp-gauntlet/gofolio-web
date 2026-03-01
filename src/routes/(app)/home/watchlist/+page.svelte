@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import Value from '$lib/components/app/Value.svelte';
+	import EntityLogo from '$lib/components/app/EntityLogo.svelte';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
@@ -171,9 +172,17 @@
 						onclick={() => openDetailDialog(item)}
 					>
 						<Table.Cell class="font-medium">
-							<div class="leading-tight">
+							<div class="flex items-start gap-2 leading-tight">
+								<EntityLogo
+									dataSource={item.dataSource}
+									symbol={item.symbol}
+									name={item.name}
+									size={18}
+								/>
+								<div class="min-w-0">
 								<div class="text-foreground truncate">{item.name}</div>
 								<div class="text-muted-foreground text-xs">{item.symbol}</div>
+								</div>
 							</div>
 						</Table.Cell>
 						<Table.Cell class="text-center">

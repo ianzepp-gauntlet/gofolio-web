@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { theme } from '$lib/stores/theme';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Sun, Moon, Menu, X, LogOut, User } from '@lucide/svelte';
+	import { Sun, Moon, Menu, X, LogOut, User, Wallet, LayoutGrid, Plus } from '@lucide/svelte';
 	import type { InfoResponse, UserResponse } from '$lib/types/api';
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -18,9 +19,17 @@
 	];
 
 	let isAdmin = $derived(user.permissions.includes('accessAdminControl'));
+	let canCreateActivity = $derived(
+		user.permissions.includes('createOrder') && !user.settings?.isRestrictedView
+	);
 
 	function isActive(href: string): boolean {
 		return $page.url.pathname.startsWith(href);
+	}
+
+	function open(path: string) {
+		mobileMenuOpen = false;
+		void goto(path);
 	}
 </script>
 
@@ -77,6 +86,21 @@
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end" class="w-48">
 					<DropdownMenu.Label>My Account</DropdownMenu.Label>
+					<DropdownMenu.Separator />
+					<DropdownMenu.Item onclick={() => open('/home')}>
+						<LayoutGrid class="h-4 w-4" />
+						Overview
+					</DropdownMenu.Item>
+					<DropdownMenu.Item onclick={() => open('/accounts')}>
+						<Wallet class="h-4 w-4" />
+						Accounts
+					</DropdownMenu.Item>
+					{#if canCreateActivity}
+						<DropdownMenu.Item onclick={() => open('/portfolio/activities?createDialog=true')}>
+							<Plus class="h-4 w-4" />
+							Add Activity
+						</DropdownMenu.Item>
+					{/if}
 					<DropdownMenu.Separator />
 					<form method="POST" action="/auth?/signout">
 						<button
@@ -140,6 +164,15 @@
 					Sign Out
 				</button>
 			</form>
+			{#if canCreateActivity}
+				<a
+					href="/portfolio/activities?createDialog=true"
+					class="text-muted-foreground hover:text-foreground block rounded-md px-3 py-2 text-sm font-medium"
+					onclick={() => (mobileMenuOpen = false)}
+				>
+					Add Activity
+				</a>
+			{/if}
 		</nav>
 	{/if}
 </header>

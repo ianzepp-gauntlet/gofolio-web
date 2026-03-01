@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table';
 	import Value from './Value.svelte';
+	import EntityLogo from './EntityLogo.svelte';
 	import type { PortfolioPosition } from '$lib/types/api';
 	import { ArrowDown, ArrowUp } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -108,14 +109,22 @@
 				onclick={() => onHoldingClick?.(holding)}
 			>
 				<Table.Cell class="font-medium">
-					<div class="leading-tight">
-						<div class="text-foreground truncate">
-							{holding.name}
-							{#if holding.name === holding.symbol && holding.assetSubClassLabel}
-								({holding.assetSubClassLabel})
-							{/if}
+					<div class="flex items-start gap-2 leading-tight">
+						<EntityLogo
+							dataSource={holding.dataSource}
+							symbol={holding.symbol}
+							name={holding.name}
+							size={18}
+						/>
+						<div class="min-w-0">
+							<div class="text-foreground truncate">
+								{holding.name}
+								{#if holding.name === holding.symbol && holding.assetSubClassLabel}
+									({holding.assetSubClassLabel})
+								{/if}
+							</div>
+							<div class="text-muted-foreground text-xs">{holding.symbol}</div>
 						</div>
-						<div class="text-muted-foreground text-xs">{holding.symbol}</div>
 					</div>
 				</Table.Cell>
 				<Table.Cell class="hidden text-right lg:table-cell">

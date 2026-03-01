@@ -2,6 +2,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import Value from './Value.svelte';
+	import EntityLogo from './EntityLogo.svelte';
 	import type { AccountWithValue } from '$lib/types/api';
 	import { ArrowRightLeft, Ellipsis, Pencil, Trash2, Wallet } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -74,14 +75,38 @@
 					: ''}"
 				onclick={() => canOpenDetails && onViewDetails?.(account.id)}
 			>
-				<Table.Cell class="font-medium">{account.name}</Table.Cell>
+				<Table.Cell class="font-medium">
+					<div class="flex items-center gap-2">
+						{#if account.platform}
+							<span class="inline-flex lg:hidden">
+								<EntityLogo
+									url={account.platform.url}
+									name={account.platform.name}
+									symbol={account.platform.name}
+									size={16}
+								/>
+							</span>
+						{/if}
+						<span>{account.name}</span>
+					</div>
+				</Table.Cell>
 				<Table.Cell class="hidden lg:table-cell">
 					{#if account.isExcluded}
 						<span class="text-muted-foreground text-xs">Excluded</span>
 					{/if}
 				</Table.Cell>
 				<Table.Cell class="hidden lg:table-cell">
-					{account.platform?.name ?? '-'}
+					<div class="flex items-center gap-2">
+						{#if account.platform}
+							<EntityLogo
+								url={account.platform.url}
+								name={account.platform.name}
+								symbol={account.platform.name}
+								size={16}
+							/>
+						{/if}
+						{account.platform?.name ?? '-'}
+					</div>
 				</Table.Cell>
 				<Table.Cell class="text-right">{account.activitiesCount}</Table.Cell>
 				<Table.Cell class="text-right">
