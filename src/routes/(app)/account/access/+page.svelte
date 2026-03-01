@@ -4,11 +4,14 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { enhance } from '$app/forms';
+	import { X, Pencil } from '@lucide/svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let showCreate = $state(false);
 	let accessType = $state<'PRIVATE' | 'PUBLIC'>('PRIVATE');
+	let editingAccess = $state<(typeof data.accesses)[number] | null>(null);
+	let editAlias = $state('');
 </script>
 
 <div class="space-y-6">
@@ -121,12 +124,24 @@
 									{access.grantee ?? '—'}
 								</td>
 								<td class="px-1 py-2 text-right">
-									<form method="POST" action="?/deleteAccess" use:enhance>
-										<input type="hidden" name="id" value={access.id} />
-										<Button type="submit" variant="ghost" size="sm" class="text-destructive"
-											>Revoke</Button
+									<div class="flex justify-end gap-1">
+										<Button
+											variant="ghost"
+											size="sm"
+											onclick={() => {
+												editingAccess = access;
+												editAlias = access.alias || '';
+											}}
 										>
-									</form>
+											<Pencil class="size-4" />
+										</Button>
+										<form method="POST" action="?/deleteAccess" use:enhance>
+											<input type="hidden" name="id" value={access.id} />
+											<Button type="submit" variant="ghost" size="sm" class="text-destructive"
+												>Revoke</Button
+											>
+										</form>
+									</div>
 								</td>
 							</tr>
 						{/each}
@@ -135,4 +150,54 @@
 			</div>
 		{/if}
 	</section>
+
+	<!-- Received Access -->
+	{#if data.user.access?.length > 0}
+		<section>
+			<h3 class="mb-3 text-sm font-medium">Received Access</h3>
+			<p class="text-muted-foreground mb-3 text-sm">Portfolios shared with you.</p>
+			<div class="overflow-x-auto">
+				<table class="gf-table w-full text-sm">
+					<thead>
+						<tr>
+							<th class="px-1 py-2 text-left font-medium">Alias</th>
+							<th class="px-1 py-2 text-left font-medium">ID</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each data.user.access as received (received.id)}
+							<tr>
+								<td class="px-1 py-2">{received.alias || '—'}</td>
+								<td class="px-1 py-2 font-mono text-xs">{received.id}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	{/if}
 </div>
+
+{#if editingAccess}
+	<div
+		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+	>
+		<div class="bg-background border-border w-full max-w-md rounded-lg border p-5 shadow-xl">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-lg font-semibold">Edit Access</h2>
+				<Button variant="ghost" size="icon-sm" onclick={() => (editingAccess = null)}><X class="size-4" /></Button>
+			</div>
+			<form method="POST" action="?/updateAccess" use:enhance class="space-y-3">
+				<input type="hidden" name="id" value={editingAccess.id} />
+				<div class="space-y-1">
+					<Label for="editAlias">Alias</Label>
+					<Input id="editAlias" name="alias" bind:value={editAlias} placeholder="Display name" />
+				</div>
+				<div class="flex justify-end gap-2">
+					<Button type="button" variant="ghost" onclick={() => (editingAccess = null)}>Cancel</Button>
+					<Button type="submit">Save</Button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}

@@ -3,8 +3,19 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { enhance } from '$app/forms';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	let settings = $derived(data.admin?.settings ?? {});
+	let systemMessage = $state('');
+	$effect(() => {
+		systemMessage = data.admin?.settings?.SYSTEM_MESSAGE ?? '';
+	});
+	let isDataGathering = $derived(settings.ENABLE_DATA_GATHERING === 'true');
+	let isUserSignup = $derived(settings.ENABLE_FEATURE_REGISTRATION === 'true');
+	let isReadOnly = $derived(settings.IS_READ_ONLY_MODE === 'true');
 </script>
 
 <div class="space-y-6">
@@ -106,6 +117,45 @@
 				</div>
 			</div>
 		{/if}
+
+		<!-- System Configuration -->
+		<div>
+			<h3 class="mb-3 text-sm font-medium">System Configuration</h3>
+			<div class="space-y-3">
+				<div class="flex items-center gap-3">
+					<form method="POST" action="?/putSetting" use:enhance class="flex items-center gap-2">
+						<input type="hidden" name="key" value="ENABLE_DATA_GATHERING" />
+						<input type="hidden" name="value" value={isDataGathering ? 'false' : 'true'} />
+						<input type="checkbox" checked={isDataGathering} class="size-4 rounded" onchange={(e) => (e.target as HTMLInputElement).form?.requestSubmit()} />
+						<Label>Enable Data Gathering</Label>
+					</form>
+				</div>
+				<div class="flex items-center gap-3">
+					<form method="POST" action="?/putSetting" use:enhance class="flex items-center gap-2">
+						<input type="hidden" name="key" value="ENABLE_FEATURE_REGISTRATION" />
+						<input type="hidden" name="value" value={isUserSignup ? 'false' : 'true'} />
+						<input type="checkbox" checked={isUserSignup} class="size-4 rounded" onchange={(e) => (e.target as HTMLInputElement).form?.requestSubmit()} />
+						<Label>Enable User Signup</Label>
+					</form>
+				</div>
+				<div class="flex items-center gap-3">
+					<form method="POST" action="?/putSetting" use:enhance class="flex items-center gap-2">
+						<input type="hidden" name="key" value="IS_READ_ONLY_MODE" />
+						<input type="hidden" name="value" value={isReadOnly ? 'false' : 'true'} />
+						<input type="checkbox" checked={isReadOnly} class="size-4 rounded" onchange={(e) => (e.target as HTMLInputElement).form?.requestSubmit()} />
+						<Label>Read-Only Mode</Label>
+					</form>
+				</div>
+				<div class="space-y-1">
+					<Label for="systemMessage">System Message</Label>
+					<form method="POST" action="?/putSetting" use:enhance class="flex gap-2">
+						<input type="hidden" name="key" value="SYSTEM_MESSAGE" />
+						<Input id="systemMessage" name="value" bind:value={systemMessage} placeholder="Enter system message..." class="flex-1" />
+						<Button type="submit" variant="outline" size="sm">Save</Button>
+					</form>
+				</div>
+			</div>
+		</div>
 
 		<!-- Housekeeping -->
 		<div>

@@ -3,6 +3,8 @@
 	import type { LayoutData } from '../../$types';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import PortfolioPerformance from '$lib/components/app/PortfolioPerformance.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData & LayoutData } = $props();
 
@@ -16,6 +18,14 @@
 		(data.chart ?? []).map((point) => point.netPerformanceInPercentageWithCurrencyEffect ?? null)
 	);
 	let isAnimated = $derived(data.range !== '1d');
+
+	const ranges = [
+		{ value: '1d', label: '1D' },
+		{ value: 'ytd', label: 'YTD' },
+		{ value: '1y', label: '1Y' },
+		{ value: '5y', label: '5Y' },
+		{ value: 'max', label: 'Max' }
+	];
 </script>
 
 {#if showOnboarding}
@@ -83,6 +93,17 @@
 					No performance history available for this range.
 				</div>
 			{/if}
+		</div>
+		<div class="flex justify-center gap-1">
+			{#each ranges as r (r.value)}
+				<Button
+					variant={data.range === r.value ? 'default' : 'outline'}
+					size="sm"
+					onclick={() => goto(`/home/overview?range=${r.value}`)}
+				>
+					{r.label}
+				</Button>
+			{/each}
 		</div>
 		<div class="px-1 pb-2">
 			{#if data.performance}

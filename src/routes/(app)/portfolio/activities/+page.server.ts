@@ -222,5 +222,41 @@ export const actions: Actions = {
 
 		const query = url.searchParams.toString();
 		redirect(303, `/portfolio/activities${query ? `?${query}` : ''}`);
+	},
+	bulkDelete: async ({ request, locals, url }) => {
+		const token = locals.token;
+		if (!token) {
+			return fail(401, { action: 'bulkDelete', error: 'Not authenticated.' });
+		}
+
+		const data = await request.formData();
+		const ids = (data.get('activityIds') as string | null)?.split(',').filter(Boolean) ?? [];
+		if (ids.length === 0) {
+			return fail(400, { action: 'bulkDelete', error: 'No activities selected.' });
+		}
+
+		const errors: string[] = [];
+		for (const id of ids) {
+			const res = await fetch(`${API_URL}/api/v1/order/${id}`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`
+				}
+			});
+			if (!res.ok) {
+				errors.push(id);
+			}
+		}
+
+		if (errors.length > 0) {
+			return fail(500, {
+				action: 'bulkDelete',
+				error: `Failed to delete ${errors.length} of ${ids.length} activities.`
+			});
+		}
+
+		const query = url.searchParams.toString();
+		redirect(303, `/portfolio/activities${query ? `?${query}` : ''}`);
 	}
 };

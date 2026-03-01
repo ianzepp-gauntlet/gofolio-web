@@ -55,6 +55,49 @@
 			.sort((a, b) => b.value - a.value);
 	});
 
+	// By Sector
+	let bySector = $derived.by(() => {
+		const map = new Map<string, number>();
+		for (const h of holdings) {
+			if (!h.sectors?.length) continue;
+			for (const s of h.sectors) {
+				const val = (h.valueInBaseCurrency ?? 0) * (s.weight ?? 0);
+				map.set(s.name, (map.get(s.name) ?? 0) + val);
+			}
+		}
+		return [...map.entries()]
+			.map(([name, value]) => ({ name, value }))
+			.sort((a, b) => b.value - a.value);
+	});
+
+	// By Country
+	let byCountry = $derived.by(() => {
+		const map = new Map<string, number>();
+		for (const h of holdings) {
+			if (!h.countries?.length) continue;
+			for (const c of h.countries) {
+				const val = (h.valueInBaseCurrency ?? 0) * (c.weight ?? 0);
+				map.set(c.name, (map.get(c.name) ?? 0) + val);
+			}
+		}
+		return [...map.entries()]
+			.map(([name, value]) => ({ name, value }))
+			.sort((a, b) => b.value - a.value)
+			.slice(0, 10);
+	});
+
+	// By Platform
+	let byPlatform = $derived.by(() => {
+		const map = new Map<string, number>();
+		for (const [, account] of Object.entries(data.details?.accounts ?? {})) {
+			const key = account.platform?.name ?? 'Unknown';
+			map.set(key, (map.get(key) ?? 0) + (account.current ?? 0));
+		}
+		return [...map.entries()]
+			.map(([name, value]) => ({ name, value }))
+			.sort((a, b) => b.value - a.value);
+	});
+
 	// By Holding (top 10)
 	let byHolding = $derived.by(() => {
 		return holdings
@@ -189,6 +232,93 @@
 				{:else}
 					<div class="space-y-2">
 						{#each byCurrency as item (item.name)}
+							<div class="space-y-1">
+								<div class="flex justify-between text-sm">
+									<span>{item.name}</span>
+									<span class="text-muted-foreground">{(pct(item.value) * 100).toFixed(1)}%</span>
+								</div>
+								<div class="bg-muted h-2 rounded-full">
+									<div
+										class="bg-primary h-2 rounded-full"
+										style="width: {pct(item.value) * 100}%"
+									></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+
+		<!-- By Sector -->
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Title class="text-sm font-medium">By Sector</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				{#if bySector.length === 0}
+					<p class="text-muted-foreground text-sm">No data</p>
+				{:else}
+					<div class="space-y-2">
+						{#each bySector as item (item.name)}
+							<div class="space-y-1">
+								<div class="flex justify-between text-sm">
+									<span>{item.name}</span>
+									<span class="text-muted-foreground">{(pct(item.value) * 100).toFixed(1)}%</span>
+								</div>
+								<div class="bg-muted h-2 rounded-full">
+									<div
+										class="bg-primary h-2 rounded-full"
+										style="width: {pct(item.value) * 100}%"
+									></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+
+		<!-- By Country (Top 10) -->
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Title class="text-sm font-medium">By Country (Top 10)</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				{#if byCountry.length === 0}
+					<p class="text-muted-foreground text-sm">No data</p>
+				{:else}
+					<div class="space-y-2">
+						{#each byCountry as item (item.name)}
+							<div class="space-y-1">
+								<div class="flex justify-between text-sm">
+									<span>{item.name}</span>
+									<span class="text-muted-foreground">{(pct(item.value) * 100).toFixed(1)}%</span>
+								</div>
+								<div class="bg-muted h-2 rounded-full">
+									<div
+										class="bg-primary h-2 rounded-full"
+										style="width: {pct(item.value) * 100}%"
+									></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+
+		<!-- By Platform -->
+		<Card.Root>
+			<Card.Header class="pb-2">
+				<Card.Title class="text-sm font-medium">By Platform</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				{#if byPlatform.length === 0}
+					<p class="text-muted-foreground text-sm">No data</p>
+				{:else}
+					<div class="space-y-2">
+						{#each byPlatform as item (item.name)}
 							<div class="space-y-1">
 								<div class="flex justify-between text-sm">
 									<span>{item.name}</span>

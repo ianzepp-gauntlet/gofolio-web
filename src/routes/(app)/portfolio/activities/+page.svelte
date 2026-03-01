@@ -9,7 +9,7 @@
 	import Value from '$lib/components/app/Value.svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { Copy, Ellipsis, Pencil, Plus, Tablet, Trash2, X } from '@lucide/svelte';
+	import { Copy, Download, Ellipsis, Pencil, Plus, Tablet, Trash2, X } from '@lucide/svelte';
 
 	interface HoldingDetailResponse {
 		SymbolProfile?: {
@@ -60,6 +60,38 @@
 	);
 	let selectedDataSource = $derived($page.url.searchParams.get('dataSource'));
 	let selectedSymbol = $derived($page.url.searchParams.get('symbol'));
+
+	let selectedIds = $state(new Set<string>());
+	let confirmBulkDelete = $state(false);
+
+	let allOnPageSelected = $derived(
+		data.activities.length > 0 && data.activities.every((a) => selectedIds.has(a.id))
+	);
+
+	function toggleSelectAll() {
+		if (allOnPageSelected) {
+			selectedIds = new Set();
+		} else {
+			selectedIds = new Set(data.activities.map((a) => a.id));
+		}
+	}
+
+	function toggleSelect(id: string) {
+		const next = new Set(selectedIds);
+		if (next.has(id)) {
+			next.delete(id);
+		} else {
+			next.add(id);
+		}
+		selectedIds = next;
+	}
+
+	// Reset selection when page data changes
+	$effect(() => {
+		void data.activities;
+		selectedIds = new Set();
+		confirmBulkDelete = false;
+	});
 
 	let detailLoading = $state(false);
 	let detailError = $state<string | null>(null);
@@ -316,6 +348,22 @@
 		}
 	}
 
+	async function exportActivities() {
+		try {
+			const response = await fetch('/api/v1/export');
+			if (!response.ok) throw new Error('Export failed');
+			const blob = await response.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `gofolio-export-${new Date().toISOString().slice(0, 10)}.json`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch {
+			// silently fail
+		}
+	}
+
 	function submitDelete(activityId: string) {
 		const form = document.getElementById(`delete-activity-${activityId}`) as HTMLFormElement | null;
 		form?.requestSubmit();
@@ -326,7 +374,11 @@
 	<h1 class="text-xl font-semibold">Activities</h1>
 
 	{#if canCreateActivity}
-		<div class="flex justify-end">
+		<div class="flex justify-end gap-2">
+			<Button variant="outline" onclick={exportActivities}>
+				<Download class="size-4" />
+				Export
+			</Button>
 			<a href={dialogHref({ importDialog: 'true' })}>
 				<Button variant="outline">Import Activities...</Button>
 			</a>
@@ -374,9 +426,37 @@
 		</form>
 	</div>
 
+	{#if selectedIds.size > 0}
+		<div class="bg-muted/40 border-border flex items-center gap-3 rounded-md border p-2">
+			<span class="text-sm font-medium">{selectedIds.size} selected</span>
+			{#if confirmBulkDelete}
+				<form method="POST" action="?/bulkDelete" class="flex items-center gap-2">
+					<input type="hidden" name="activityIds" value={[...selectedIds].join(',')} />
+					<span class="text-destructive text-sm">Are you sure?</span>
+					<Button type="submit" variant="destructive" size="sm">Confirm Delete</Button>
+					<Button type="button" variant="ghost" size="sm" onclick={() => (confirmBulkDelete = false)}>Cancel</Button>
+				</form>
+			{:else}
+				<Button variant="destructive" size="sm" onclick={() => (confirmBulkDelete = true)}>
+					<Trash2 class="size-4" />
+					Delete Selected
+				</Button>
+			{/if}
+			<Button variant="ghost" size="sm" onclick={() => (selectedIds = new Set())}>Clear</Button>
+		</div>
+	{/if}
+
 	<Table.Root>
 		<Table.Header>
 			<Table.Row>
+				<Table.Head class="w-10">
+					<input
+						type="checkbox"
+						checked={allOnPageSelected}
+						onchange={toggleSelectAll}
+						class="size-4 rounded"
+					/>
+				</Table.Head>
 				<Table.Head><a href={sortHref('date')}>Date</a></Table.Head>
 				<Table.Head><a href={sortHref('type')}>Type</a></Table.Head>
 				<Table.Head>Symbol</Table.Head>
@@ -394,9 +474,17 @@
 		<Table.Body>
 			{#each data.activities as activity (activity.id)}
 				<Table.Row
-					class="{canOpenHolding(activity) ? 'cursor-pointer' : ''}"
+					class={canOpenHolding(activity) ? 'cursor-pointer' : ''}
 					onclick={() => openHoldingDetail(activity)}
 				>
+					<Table.Cell onclick={(e) => e.stopPropagation()}>
+						<input
+							type="checkbox"
+							checked={selectedIds.has(activity.id)}
+							onchange={() => toggleSelect(activity.id)}
+							class="size-4 rounded"
+						/>
+					</Table.Cell>
 					<Table.Cell>{new Date(activity.date).toLocaleDateString()}</Table.Cell>
 					<Table.Cell>{activity.type ?? '-'}</Table.Cell>
 					<Table.Cell>
@@ -474,7 +562,7 @@
 				</Table.Row>
 			{:else}
 				<Table.Row>
-					<Table.Cell colspan={8} class="text-muted-foreground py-8 text-center">
+					<Table.Cell colspan={9} class="text-muted-foreground py-8 text-center">
 						No activities found.
 					</Table.Cell>
 				</Table.Row>
@@ -482,6 +570,9 @@
 		</Table.Body>
 	</Table.Root>
 
+	{#if form?.action === 'bulkDelete' && form?.error}
+		<p class="text-destructive text-sm">{form.error}</p>
+	{/if}
 	{#if form?.action === 'deleteActivity' && form?.error}
 		<p class="text-destructive text-sm">{form.error}</p>
 	{/if}

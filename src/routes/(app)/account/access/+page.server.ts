@@ -74,6 +74,28 @@ export const actions: Actions = {
 		if (!res.ok) return fail(res.status, { error: 'Failed to delete access.' });
 		redirect(303, '/account/access');
 	},
+	updateAccess: async ({ request, locals }) => {
+		const token = locals.token;
+		if (!token) return fail(401, { error: 'Not authenticated.' });
+
+		const fd = await request.formData();
+		const id = fd.get('id') as string;
+		const alias = fd.get('alias') as string;
+
+		if (!id) return fail(400, { error: 'Access ID is required.' });
+
+		const res = await fetch(`${API_URL}/api/v1/access/${id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`
+			},
+			body: JSON.stringify({ alias: alias?.trim() || null })
+		});
+
+		if (!res.ok) return fail(res.status, { error: 'Failed to update access.' });
+		redirect(303, '/account/access');
+	},
 	generateToken: async ({ locals }) => {
 		const token = locals.token;
 		if (!token) return fail(401, { error: 'Not authenticated.' });

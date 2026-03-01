@@ -1,9 +1,14 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import * as Card from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
 	import Value from '$lib/components/app/Value.svelte';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
+
+	let groupBy = $derived(data.groupBy ?? 'month');
+	let isYearly = $derived(groupBy === 'year');
 
 	let perf = $derived(data.performance?.performance ?? null);
 	let baseCurrency = $derived(data.user?.settings?.baseCurrency ?? 'USD');
@@ -174,24 +179,41 @@
 	<!-- Investment Timeline -->
 	{#if investmentData.length > 0}
 		<section>
-			<h3 class="mb-3 text-sm font-medium">Investment Timeline (Monthly)</h3>
+			<div class="mb-3 flex items-center justify-between">
+				<h3 class="text-sm font-medium">Investment Timeline</h3>
+				<div class="flex gap-1">
+					<Button
+						variant={isYearly ? 'outline' : 'default'}
+						size="sm"
+						onclick={() => goto('/portfolio/analysis?groupBy=month')}
+					>
+						Monthly
+					</Button>
+					<Button
+						variant={isYearly ? 'default' : 'outline'}
+						size="sm"
+						onclick={() => goto('/portfolio/analysis?groupBy=year')}
+					>
+						Yearly
+					</Button>
+				</div>
+			</div>
 			<div class="overflow-x-auto">
 				<table class="gf-table w-full text-sm">
 					<thead>
 						<tr>
-							<th class="px-1 py-2 text-left font-medium">Month</th>
+							<th class="px-1 py-2 text-left font-medium">{isYearly ? 'Year' : 'Month'}</th>
 							<th class="px-1 py-2 text-right font-medium">Investment</th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each investmentData.slice(-12) as item (item.date)}
+						{#each investmentData.slice(isYearly ? -20 : -12) as item (item.date)}
 							<tr>
-								<td class="px-1 py-2 text-xs"
-									>{new Date(item.date).toLocaleDateString('en-US', {
-										year: 'numeric',
-										month: 'short'
-									})}</td
-								>
+								<td class="px-1 py-2 text-xs">
+									{isYearly
+										? new Date(item.date).getFullYear().toString()
+										: new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+								</td>
 								<td class="px-1 py-2 text-right">
 									<Value value={item.investment} currency={baseCurrency} colorized />
 								</td>
@@ -206,24 +228,23 @@
 	<!-- Dividend Timeline -->
 	{#if dividendData.length > 0}
 		<section>
-			<h3 class="mb-3 text-sm font-medium">Dividend Timeline (Monthly)</h3>
+			<h3 class="mb-3 text-sm font-medium">Dividend Timeline</h3>
 			<div class="overflow-x-auto">
 				<table class="gf-table w-full text-sm">
 					<thead>
 						<tr>
-							<th class="px-1 py-2 text-left font-medium">Month</th>
+							<th class="px-1 py-2 text-left font-medium">{isYearly ? 'Year' : 'Month'}</th>
 							<th class="px-1 py-2 text-right font-medium">Dividend</th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each dividendData.slice(-12) as item (item.date)}
+						{#each dividendData.slice(isYearly ? -20 : -12) as item (item.date)}
 							<tr>
-								<td class="px-1 py-2 text-xs"
-									>{new Date(item.date).toLocaleDateString('en-US', {
-										year: 'numeric',
-										month: 'short'
-									})}</td
-								>
+								<td class="px-1 py-2 text-xs">
+									{isYearly
+										? new Date(item.date).getFullYear().toString()
+										: new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+								</td>
 								<td class="px-1 py-2 text-right">
 									<Value value={item.payment} currency={baseCurrency} />
 								</td>

@@ -103,6 +103,9 @@ export interface PortfolioPosition {
 	valueInPercentage?: number;
 	dataSource?: string;
 	value?: number;
+	sectors?: Array<{ name: string; weight: number }>;
+	countries?: Array<{ code: string; name: string; weight: number; continent: string }>;
+	tags?: Array<{ id: string; name: string }>;
 }
 
 export interface PortfolioHoldingsResponse {
@@ -144,7 +147,9 @@ export interface PortfolioDetails {
 		{
 			balance: number;
 			currency: string;
+			current: number;
 			name: string;
+			platform?: { id: string; name: string; url?: string };
 			valueInBaseCurrency: number;
 			valueInPercentage?: number;
 		}
