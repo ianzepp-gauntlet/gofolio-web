@@ -153,13 +153,13 @@
 		<Table.Root>
 			<Table.Header>
 				<Table.Row>
-					<Table.Head>Name</Table.Head>
+					<Table.Head class="sticky left-0 z-20 bg-background">Name</Table.Head>
 					<Table.Head class="text-center">50d</Table.Head>
 					<Table.Head class="text-center">200d</Table.Head>
 					<Table.Head class="text-right">From ATH</Table.Head>
 					<Table.Head class="text-center">Market</Table.Head>
 					{#if canDeleteWatchlistItem}
-						<Table.Head class="w-12 text-center"></Table.Head>
+						<Table.Head class="sticky right-0 z-20 w-12 bg-background text-center"></Table.Head>
 					{/if}
 				</Table.Row>
 			</Table.Header>
@@ -171,7 +171,7 @@
 						class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 cursor-pointer"
 						onclick={() => openDetailDialog(item)}
 					>
-						<Table.Cell class="font-medium">
+						<Table.Cell class="sticky left-0 z-10 bg-background font-medium">
 							<div class="flex items-start gap-2 leading-tight">
 								<EntityLogo
 									dataSource={item.dataSource}
@@ -200,7 +200,10 @@
 						</Table.Cell>
 						<Table.Cell class="text-center">{conditionEmoji(item.marketCondition)}</Table.Cell>
 						{#if canDeleteWatchlistItem}
-							<Table.Cell class="text-center" onclick={(event) => event.stopPropagation()}>
+							<Table.Cell
+								class="sticky right-0 z-10 bg-background text-center"
+								onclick={(event) => event.stopPropagation()}
+							>
 								<DropdownMenu.Root>
 									<DropdownMenu.Trigger
 										class="hover:bg-accent hover:text-accent-foreground inline-flex h-8 w-8 items-center justify-center rounded-md"

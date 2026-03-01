@@ -167,7 +167,7 @@
 		<Table.Root>
 			<Table.Header>
 				<Table.Row>
-					<Table.Head>Benchmark</Table.Head>
+					<Table.Head class="sticky left-0 z-20 bg-background">Benchmark</Table.Head>
 					<Table.Head class="text-center">50d</Table.Head>
 					<Table.Head class="text-center">200d</Table.Head>
 					<Table.Head class="text-right">From ATH</Table.Head>
@@ -182,7 +182,7 @@
 						class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 cursor-pointer"
 						onclick={() => openDetailDialog(benchmark)}
 					>
-						<Table.Cell class="font-medium">
+						<Table.Cell class="sticky left-0 z-10 bg-background font-medium">
 							<div class="flex items-start gap-2 leading-tight">
 								<EntityLogo
 									dataSource={benchmark.dataSource}

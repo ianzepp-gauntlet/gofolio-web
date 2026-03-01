@@ -54,7 +54,7 @@
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head>Name</Table.Head>
+			<Table.Head class="sticky left-0 z-20 bg-background">Name</Table.Head>
 			<Table.Head class="hidden lg:table-cell">Status</Table.Head>
 			<Table.Head class="hidden lg:table-cell">Platform</Table.Head>
 			<Table.Head class="text-right">Activities</Table.Head>
@@ -63,7 +63,7 @@
 			<Table.Head class="hidden text-right lg:table-cell">Currency</Table.Head>
 			<Table.Head class="text-right">Allocation</Table.Head>
 			{#if showActions}
-				<Table.Head class="w-12 text-center"></Table.Head>
+				<Table.Head class="sticky right-0 z-20 w-12 bg-background text-center"></Table.Head>
 			{/if}
 		</Table.Row>
 	</Table.Header>
@@ -75,7 +75,7 @@
 					: ''}"
 				onclick={() => canOpenDetails && onViewDetails?.(account.id)}
 			>
-				<Table.Cell class="font-medium">
+				<Table.Cell class="sticky left-0 z-10 bg-background font-medium">
 					<div class="flex items-center gap-2">
 						{#if account.platform}
 							<span class="inline-flex lg:hidden">
@@ -120,7 +120,10 @@
 					<Value value={account.allocationInPercentage} type="percent" />
 				</Table.Cell>
 				{#if showActions}
-					<Table.Cell class="text-center" onclick={(event) => event.stopPropagation()}>
+					<Table.Cell
+						class="sticky right-0 z-10 bg-background text-center"
+						onclick={(event) => event.stopPropagation()}
+					>
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger
 								class="hover:bg-accent hover:text-accent-foreground inline-flex h-8 w-8 items-center justify-center rounded-md"

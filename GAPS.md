@@ -67,7 +67,7 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 - [x] Add entity/logo components where Ghostfolio surfaces logos (holdings, watchlist, markets, accounts platform entries).
 - Implement consistent skeleton loaders for all list/table screens.
-- Ensure sticky columns, sorting behavior, and responsive column hiding match Ghostfolio.
+- [~] Ensure sticky columns, sorting behavior, and responsive column hiding match Ghostfolio (sticky key columns added across core tables; remaining fine-grained sort/hide behavior still pending).
 - Validate typography, paddings, and row heights against Ghostfolio UI tokens.
 
 ## 9. Portfolio Section Coverage (Major Missing Area)

@@ -87,7 +87,7 @@
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head>Name</Table.Head>
+			<Table.Head class="sticky left-0 z-20 bg-background">Name</Table.Head>
 			<Table.Head class="hidden text-right lg:table-cell"
 				>{@render sortHeader('First Activity', 'dateOfFirstActivity')}</Table.Head
 			>
@@ -99,7 +99,9 @@
 			>
 			<Table.Head class="text-right">{@render sortHeader('Allocation', 'allocation')}</Table.Head>
 			<Table.Head class="text-right">{@render sortHeader('Change', 'change')}</Table.Head>
-			<Table.Head class="text-right">{@render sortHeader('Performance', 'performance')}</Table.Head>
+			<Table.Head class="sticky right-0 z-20 bg-background text-right"
+				>{@render sortHeader('Performance', 'performance')}</Table.Head
+			>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
@@ -108,7 +110,7 @@
 				class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 cursor-pointer"
 				onclick={() => onHoldingClick?.(holding)}
 			>
-				<Table.Cell class="font-medium">
+				<Table.Cell class="sticky left-0 z-10 bg-background font-medium">
 					<div class="flex items-start gap-2 leading-tight">
 						<EntityLogo
 							dataSource={holding.dataSource}
@@ -144,7 +146,7 @@
 				<Table.Cell class="text-right">
 					<Value value={holding.netPerformanceWithCurrencyEffect} currency={baseCurrency} colorized />
 				</Table.Cell>
-				<Table.Cell class="text-right">
+				<Table.Cell class="sticky right-0 z-10 bg-background text-right">
 					<Value value={holding.netPerformancePercentWithCurrencyEffect} type="percent" colorized />
 				</Table.Cell>
 			</Table.Row>
