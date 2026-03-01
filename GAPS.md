@@ -72,14 +72,14 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 ## 9. Portfolio Section Coverage (Major Missing Area)
 
 - [x] Implement portfolio routes/pages scaffold:
-  - [~] Activities page upgraded from placeholder to live `/api/v1/order` table (done: pagination, sorting, and create/update/delete baseline; pending: advanced import/filter/detail parity).
+  - [~] Activities page upgraded from placeholder to live `/api/v1/order` table (done: pagination, sorting, create/update/delete baseline, and detail dialog flow; pending: advanced import/filter parity).
   - Activities
   - Allocations
   - Fire
   - X-Ray
   - Analysis
 - [x] Recreate shared portfolio layout/tab structure.
-- [~] Port critical dialogs and flows tied to these views (done: activities create/update/delete baseline; pending: advanced import/filter/detail parity).
+- [~] Port critical dialogs and flows tied to these views (done: activities create/update/delete/detail baseline; pending: advanced import/filter parity).
 
 ## 10. User Account / Settings Coverage
 

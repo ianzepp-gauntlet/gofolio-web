@@ -9,16 +9,81 @@
 	import { goto } from '$app/navigation';
 	import { X } from '@lucide/svelte';
 
+	interface HoldingDetailResponse {
+		SymbolProfile?: {
+			name?: string;
+			symbol?: string;
+		};
+		activitiesCount?: number;
+		averagePrice?: number;
+		marketPrice?: number;
+		value?: number;
+		quantity?: number;
+		netPerformanceWithCurrencyEffect?: number;
+		netPerformancePercentWithCurrencyEffect?: number;
+	}
+
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let baseCurrency = $derived(data.user?.settings?.baseCurrency ?? 'USD');
 	let totalPages = $derived(Math.max(1, Math.ceil((data.totalItems ?? 0) / data.take)));
 	let showCreateDialog = $derived($page.url.searchParams.get('createDialog') === 'true');
-	let editActivityId = $derived($page.url.searchParams.get('activityId'));
-	let showEditDialog = $derived($page.url.searchParams.get('editDialog') === 'true' && !!editActivityId);
+	let activityIdFromQuery = $derived($page.url.searchParams.get('activityId'));
 	let selectedActivity = $derived.by(() =>
-		editActivityId ? data.activities.find((activity) => activity.id === editActivityId) : undefined
+		activityIdFromQuery
+			? data.activities.find((activity) => activity.id === activityIdFromQuery)
+			: undefined
 	);
+	let showEditDialog = $derived(
+		$page.url.searchParams.get('editDialog') === 'true' && !!selectedActivity
+	);
+	let showHoldingDetailDialog = $derived(
+		$page.url.searchParams.get('holdingDetailDialog') === 'true'
+	);
+	let selectedDataSource = $derived($page.url.searchParams.get('dataSource'));
+	let selectedSymbol = $derived($page.url.searchParams.get('symbol'));
+
+	let detailLoading = $state(false);
+	let detailError = $state<string | null>(null);
+	let detailData = $state<HoldingDetailResponse | null>(null);
+
+	const dialogQueryKeys = new Set([
+		'createDialog',
+		'editDialog',
+		'activityId',
+		'holdingDetailDialog',
+		'dataSource',
+		'symbol'
+	]);
+
+	$effect(() => {
+		if (!showHoldingDetailDialog || !selectedDataSource || !selectedSymbol) {
+			detailLoading = false;
+			detailError = null;
+			detailData = null;
+			return;
+		}
+
+		detailLoading = true;
+		detailError = null;
+
+		void fetch(
+			`/api/v1/portfolio/holding/${encodeURIComponent(selectedDataSource)}/${encodeURIComponent(selectedSymbol)}`
+		)
+			.then(async (response) => {
+				if (!response.ok) {
+					throw new Error(await response.text());
+				}
+				detailData = await response.json();
+			})
+			.catch(() => {
+				detailError = 'Unable to load holding details.';
+				detailData = null;
+			})
+			.finally(() => {
+				detailLoading = false;
+			});
+	});
 
 	function currentParamsObject(): Record<string, string> {
 		const obj: Record<string, string> = {};
@@ -28,6 +93,14 @@
 		return obj;
 	}
 
+	function currentParamsWithoutDialogs(): Record<string, string> {
+		const params = currentParamsObject();
+		for (const key of dialogQueryKeys) {
+			delete params[key];
+		}
+		return params;
+	}
+
 	function encodeParams(params: Record<string, string>): string {
 		return Object.entries(params)
 			.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
@@ -35,13 +108,13 @@
 	}
 
 	function pageHref(pageNumber: number): string {
-		const params = currentParamsObject();
+		const params = currentParamsWithoutDialogs();
 		params.page = String(pageNumber);
 		return `/portfolio/activities?${encodeParams(params)}`;
 	}
 
 	function sortHref(column: string): string {
-		const params = currentParamsObject();
+		const params = currentParamsWithoutDialogs();
 		const currentColumn = data.sortColumn;
 		const currentDirection = data.sortDirection;
 		const nextDirection =
@@ -52,12 +125,43 @@
 		return `/portfolio/activities?${encodeParams(params)}`;
 	}
 
+	function dialogHref(params: Record<string, string>): string {
+		return `/portfolio/activities?${encodeParams({ ...currentParamsWithoutDialogs(), ...params })}`;
+	}
+
 	function closeDialogs() {
-		void goto('/portfolio/activities', { replaceState: true, keepFocus: true, noScroll: true });
+		const params = encodeParams(currentParamsWithoutDialogs());
+		void goto(`/portfolio/activities${params ? `?${params}` : ''}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
 	}
 
 	function editHref(activityId: string): string {
-		return `/portfolio/activities?editDialog=true&activityId=${encodeURIComponent(activityId)}`;
+		return dialogHref({ editDialog: 'true', activityId });
+	}
+
+	function holdingDetailHref(dataSource: string, symbol: string): string {
+		return dialogHref({
+			holdingDetailDialog: 'true',
+			dataSource,
+			symbol
+		});
+	}
+
+	function canOpenHolding(activity: (typeof data.activities)[number]): boolean {
+		return typeof activity.dataSource === 'string' && !!activity.dataSource && !!activity.symbol;
+	}
+
+	function openHoldingDetail(activity: (typeof data.activities)[number]) {
+		if (!canOpenHolding(activity)) {
+			return;
+		}
+		void goto(holdingDetailHref(activity.dataSource!, activity.symbol!), {
+			keepFocus: true,
+			noScroll: true
+		});
 	}
 </script>
 
@@ -65,7 +169,7 @@
 	<div class="flex items-center justify-between gap-3">
 		<h1 class="text-xl font-semibold">Activities</h1>
 		<div class="flex items-center gap-2">
-			<a href="/portfolio/activities?createDialog=true"><Button>Create Activity...</Button></a>
+			<a href={dialogHref({ createDialog: 'true' })}><Button>Create Activity...</Button></a>
 		</div>
 	</div>
 
@@ -80,13 +184,20 @@
 				<Table.Head class="hidden text-right lg:table-cell"
 					><a href={sortHref('unitPrice')}>Unit Price</a></Table.Head
 				>
-				<Table.Head class="text-right"><a href={sortHref('valueInBaseCurrency')}>Value</a></Table.Head>
+				<Table.Head class="text-right"
+					><a href={sortHref('valueInBaseCurrency')}>Value</a></Table.Head
+				>
 				<Table.Head class="w-20 text-center">Actions</Table.Head>
 			</Table.Row>
 		</Table.Header>
 		<Table.Body>
 			{#each data.activities as activity (activity.id)}
-				<Table.Row class="odd:bg-background even:bg-muted/30">
+				<Table.Row
+					class="odd:bg-background even:bg-muted/30 {canOpenHolding(activity)
+						? 'hover:bg-muted/50 cursor-pointer'
+						: ''}"
+					onclick={() => openHoldingDetail(activity)}
+				>
 					<Table.Cell>{new Date(activity.date).toLocaleDateString()}</Table.Cell>
 					<Table.Cell>{activity.type ?? '-'}</Table.Cell>
 					<Table.Cell>
@@ -108,8 +219,13 @@
 					<Table.Cell class="text-right">
 						<Value value={activity.valueInBaseCurrency ?? 0} currency={baseCurrency} />
 					</Table.Cell>
-					<Table.Cell class="text-center">
+					<Table.Cell class="text-center" onclick={(event) => event.stopPropagation()}>
 						<div class="flex items-center justify-center gap-1">
+							{#if canOpenHolding(activity)}
+								<a href={holdingDetailHref(activity.dataSource!, activity.symbol!)}>
+									<Button variant="ghost" size="sm">View Holding...</Button>
+								</a>
+							{/if}
 							<a href={editHref(activity.id)}><Button variant="ghost" size="sm">Edit</Button></a>
 							<form method="POST" action="?/deleteActivity">
 								<input type="hidden" name="activityId" value={activity.id} />
@@ -149,7 +265,9 @@
 </div>
 
 {#if showCreateDialog}
-	<div class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+	<div
+		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+	>
 		<div class="bg-background border-border w-full max-w-xl rounded-lg border p-5 shadow-xl">
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-semibold">Create Activity</h2>
@@ -202,11 +320,25 @@
 				</div>
 				<div class="space-y-1">
 					<Label for="createQuantity">Quantity</Label>
-					<Input id="createQuantity" name="quantity" type="number" step="0.000001" value="0" required />
+					<Input
+						id="createQuantity"
+						name="quantity"
+						type="number"
+						step="0.000001"
+						value="0"
+						required
+					/>
 				</div>
 				<div class="space-y-1">
 					<Label for="createUnitPrice">Unit Price</Label>
-					<Input id="createUnitPrice" name="unitPrice" type="number" step="0.000001" value="0" required />
+					<Input
+						id="createUnitPrice"
+						name="unitPrice"
+						type="number"
+						step="0.000001"
+						value="0"
+						required
+					/>
 				</div>
 				<div class="space-y-1">
 					<Label for="createFee">Fee</Label>
@@ -217,9 +349,9 @@
 					<Input id="createComment" name="comment" />
 				</div>
 				{#if form?.action === 'createActivity' && form?.error}
-					<p class="text-destructive md:col-span-2 text-sm">{form.error}</p>
+					<p class="text-destructive text-sm md:col-span-2">{form.error}</p>
 				{/if}
-				<div class="md:col-span-2 flex justify-end gap-2">
+				<div class="flex justify-end gap-2 md:col-span-2">
 					<Button type="button" variant="ghost" onclick={closeDialogs}>Cancel</Button>
 					<Button type="submit">Save</Button>
 				</div>
@@ -229,7 +361,9 @@
 {/if}
 
 {#if showEditDialog && selectedActivity}
-	<div class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+	<div
+		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+	>
 		<div class="bg-background border-border w-full max-w-xl rounded-lg border p-5 shadow-xl">
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-semibold">Edit Activity</h2>
@@ -266,7 +400,12 @@
 				</div>
 				<div class="space-y-1">
 					<Label for="editCurrency">Currency</Label>
-					<Input id="editCurrency" name="currency" value={selectedActivity.currency ?? baseCurrency} required />
+					<Input
+						id="editCurrency"
+						name="currency"
+						value={selectedActivity.currency ?? baseCurrency}
+						required
+					/>
 				</div>
 				<div class="space-y-1">
 					<Label for="editAccountId">Account</Label>
@@ -321,13 +460,83 @@
 					<Input id="editComment" name="comment" value={selectedActivity.comment ?? ''} />
 				</div>
 				{#if form?.action === 'updateActivity' && form?.error}
-					<p class="text-destructive md:col-span-2 text-sm">{form.error}</p>
+					<p class="text-destructive text-sm md:col-span-2">{form.error}</p>
 				{/if}
-				<div class="md:col-span-2 flex justify-end gap-2">
+				<div class="flex justify-end gap-2 md:col-span-2">
 					<Button type="button" variant="ghost" onclick={closeDialogs}>Cancel</Button>
 					<Button type="submit">Save</Button>
 				</div>
 			</form>
+		</div>
+	</div>
+{/if}
+
+{#if showHoldingDetailDialog && selectedDataSource && selectedSymbol}
+	<div
+		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+	>
+		<div class="bg-background border-border w-full max-w-2xl rounded-lg border p-5 shadow-xl">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-lg font-semibold">
+					{detailData?.SymbolProfile?.name ?? detailData?.SymbolProfile?.symbol ?? selectedSymbol}
+				</h2>
+				<Button variant="ghost" size="icon-sm" onclick={closeDialogs}><X class="size-4" /></Button>
+			</div>
+			{#if detailLoading}
+				<p class="text-muted-foreground py-8 text-center text-sm">Loading holding details...</p>
+			{:else if detailError}
+				<p class="text-destructive py-8 text-center text-sm">{detailError}</p>
+			{:else if detailData}
+				<div class="grid gap-2 sm:grid-cols-2">
+					<div class="rounded-md border p-3">
+						<div class="text-muted-foreground text-xs">Quantity</div>
+						<div class="text-sm font-medium">{detailData.quantity ?? '-'}</div>
+					</div>
+					<div class="rounded-md border p-3">
+						<div class="text-muted-foreground text-xs">Average Price</div>
+						<div class="text-sm font-medium">
+							<Value value={detailData.averagePrice} currency={baseCurrency} />
+						</div>
+					</div>
+					<div class="rounded-md border p-3">
+						<div class="text-muted-foreground text-xs">Market Price</div>
+						<div class="text-sm font-medium">
+							<Value value={detailData.marketPrice} currency={baseCurrency} />
+						</div>
+					</div>
+					<div class="rounded-md border p-3">
+						<div class="text-muted-foreground text-xs">Value</div>
+						<div class="text-sm font-medium">
+							<Value value={detailData.value} currency={baseCurrency} />
+						</div>
+					</div>
+					<div class="rounded-md border p-3">
+						<div class="text-muted-foreground text-xs">Net Performance</div>
+						<div class="text-sm font-medium">
+							<Value
+								value={detailData.netPerformanceWithCurrencyEffect}
+								currency={baseCurrency}
+								colorized
+							/>
+						</div>
+					</div>
+					<div class="rounded-md border p-3">
+						<div class="text-muted-foreground text-xs">Performance</div>
+						<div class="text-sm font-medium">
+							<Value
+								value={detailData.netPerformancePercentWithCurrencyEffect}
+								type="percent"
+								colorized
+							/>
+						</div>
+					</div>
+				</div>
+			{:else}
+				<p class="text-muted-foreground py-8 text-center text-sm">No holding details available.</p>
+			{/if}
+			<div class="mt-4 flex justify-end">
+				<Button type="button" onclick={closeDialogs}>Close</Button>
+			</div>
 		</div>
 	</div>
 {/if}
