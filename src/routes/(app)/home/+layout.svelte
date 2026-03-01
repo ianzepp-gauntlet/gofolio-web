@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import * as Tabs from '$lib/components/ui/tabs';
 	import { ChartLine, LayoutList, ClipboardList, Star, TrendingUp } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
@@ -19,22 +18,25 @@
 	);
 </script>
 
-<div class="space-y-4">
-	<Tabs.Root value={activeTab}>
-		<Tabs.List>
+<div class="flex min-h-[calc(100dvh-8.5rem)] flex-col">
+	<div class="min-h-0 flex-1 overflow-auto pb-4">
+		{@render children()}
+	</div>
+
+	<nav class="border-border mt-1 border-t pt-2">
+		<div class="mx-auto flex w-full items-center justify-center gap-1">
 			{#each tabs as tab (tab.value)}
 				<a
 					href={tab.href}
-					class="focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
+					class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex min-w-0 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none {activeTab ===
+					tab.value
+						? 'bg-accent text-foreground'
+						: ''}"
 				>
-					<Tabs.Trigger value={tab.value} class="gap-1.5">
-						<tab.icon class="h-4 w-4" />
-						<span class="hidden sm:inline">{tab.label}</span>
-					</Tabs.Trigger>
+					<tab.icon class="h-5 w-5 sm:h-4 sm:w-4" />
+					<span class="hidden sm:inline">{tab.label}</span>
 				</a>
 			{/each}
-		</Tabs.List>
-	</Tabs.Root>
-
-	{@render children()}
+		</div>
+	</nav>
 </div>
