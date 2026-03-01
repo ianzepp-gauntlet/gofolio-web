@@ -213,3 +213,18 @@ export interface WatchlistResponse {
 export interface BenchmarkResponse {
 	benchmarks: Benchmark[];
 }
+
+export interface FearAndGreedModeData {
+	marketPrice: number;
+	historicalData?: Array<{
+		date: string;
+		marketPrice: number;
+	}>;
+}
+
+export interface MarketDataOfMarketsResponse {
+	fearAndGreedIndex: {
+		STOCKS?: FearAndGreedModeData;
+		CRYPTOCURRENCIES?: FearAndGreedModeData;
+	};
+}

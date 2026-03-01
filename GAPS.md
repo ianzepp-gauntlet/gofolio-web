@@ -52,9 +52,9 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 
 ## 6. Home Markets Parity
 
-- Add Fear & Greed module (chart + gauge) when permission-enabled.
-- Match benchmark table interactions and detail dialogs.
-- Verify premium/permission-driven behavior and explanatory messaging.
+- [x] Add Fear & Greed module (chart + gauge) when permission-enabled.
+- [x] Match benchmark table interactions and detail dialogs (row click opens benchmark detail modal).
+- [x] Verify permission-driven behavior and explanatory messaging (module hidden with explanatory notice when permission is missing).
 
 ## 7. Accounts Page Parity
 
