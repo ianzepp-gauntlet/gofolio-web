@@ -48,35 +48,35 @@
 	{#if data.jobs.length === 0}
 		<p class="text-muted-foreground py-8 text-center text-sm">No jobs found.</p>
 	{:else}
-		<div class="border-border overflow-x-auto rounded-md border">
-			<table class="w-full text-sm">
+		<div class="overflow-x-auto">
+			<table class="gf-table w-full text-sm">
 				<thead>
-					<tr class="border-border bg-muted/50 border-b">
-						<th class="px-4 py-2 text-left font-medium">ID</th>
-						<th class="px-4 py-2 text-left font-medium">Type</th>
-						<th class="px-4 py-2 text-left font-medium">Symbol</th>
-						<th class="hidden px-4 py-2 text-left font-medium md:table-cell">Data Source</th>
-						<th class="hidden px-4 py-2 text-right font-medium md:table-cell">Attempts</th>
-						<th class="hidden px-4 py-2 text-left font-medium lg:table-cell">Created</th>
-						<th class="hidden px-4 py-2 text-left font-medium lg:table-cell">Finished</th>
-						<th class="px-4 py-2 text-right font-medium">Actions</th>
+					<tr>
+						<th class="px-1 py-2 text-left font-medium">ID</th>
+						<th class="px-1 py-2 text-left font-medium">Type</th>
+						<th class="px-1 py-2 text-left font-medium">Symbol</th>
+						<th class="hidden px-1 py-2 text-left font-medium md:table-cell">Data Source</th>
+						<th class="hidden px-1 py-2 text-right font-medium md:table-cell">Attempts</th>
+						<th class="hidden px-1 py-2 text-left font-medium lg:table-cell">Created</th>
+						<th class="hidden px-1 py-2 text-left font-medium lg:table-cell">Finished</th>
+						<th class="px-1 py-2 text-right font-medium">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each data.jobs as job (job.id)}
-						<tr class="border-border border-b last:border-0">
-							<td class="px-4 py-2 font-mono text-xs">{job.id}</td>
-							<td class="px-4 py-2">{job.name}</td>
-							<td class="px-4 py-2 font-mono text-xs"
+						<tr>
+							<td class="px-1 py-2 font-mono text-xs">{job.id}</td>
+							<td class="px-1 py-2">{job.name}</td>
+							<td class="px-1 py-2 font-mono text-xs"
 								>{(job.data as Record<string, unknown>)?.['symbol'] ?? '—'}</td
 							>
-							<td class="hidden px-4 py-2 font-mono text-xs md:table-cell"
+							<td class="hidden px-1 py-2 font-mono text-xs md:table-cell"
 								>{(job.data as Record<string, unknown>)?.['dataSource'] ?? '—'}</td
 							>
-							<td class="hidden px-4 py-2 text-right md:table-cell">{job.attemptsMade}</td>
-							<td class="hidden px-4 py-2 text-xs lg:table-cell">{formatDate(job.timestamp)}</td>
-							<td class="hidden px-4 py-2 text-xs lg:table-cell">{formatDate(job.finishedOn)}</td>
-							<td class="px-4 py-2 text-right">
+							<td class="hidden px-1 py-2 text-right md:table-cell">{job.attemptsMade}</td>
+							<td class="hidden px-1 py-2 text-xs lg:table-cell">{formatDate(job.timestamp)}</td>
+							<td class="hidden px-1 py-2 text-xs lg:table-cell">{formatDate(job.finishedOn)}</td>
+							<td class="px-1 py-2 text-right">
 								<div class="flex justify-end gap-1">
 									<form method="POST" action="?/executeJob" use:enhance>
 										<input type="hidden" name="jobId" value={job.id} />

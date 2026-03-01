@@ -5,72 +5,73 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-	--radius: 0.625rem;
+	--font-family-sans-serif: 'Inter', Roboto, 'Helvetica Neue', sans-serif;
+	--radius: 0.25rem;
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.145 0 0);
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.145 0 0);
 	--popover: oklch(1 0 0);
 	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
-	--primary-foreground: oklch(0.985 0 0);
+	--primary: oklch(0.78 0.1 190);
+	--primary-foreground: oklch(1 0 0);
 	--secondary: oklch(0.97 0 0);
 	--secondary-foreground: oklch(0.205 0 0);
 	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
+	--muted-foreground: oklch(0.45 0 0);
 	--accent: oklch(0.97 0 0);
 	--accent-foreground: oklch(0.205 0 0);
 	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.922 0 0);
-	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
-	--chart-1: oklch(0.646 0.222 41.116);
-	--chart-2: oklch(0.6 0.118 184.704);
-	--chart-3: oklch(0.398 0.07 227.392);
-	--chart-4: oklch(0.828 0.189 84.429);
-	--chart-5: oklch(0.769 0.188 70.08);
+	--border: oklch(0.9 0 0);
+	--input: oklch(0.9 0 0);
+	--ring: oklch(0.78 0.1 190);
+	--chart-1: oklch(0.78 0.1 190);
+	--chart-2: oklch(0.58 0.14 250);
+	--chart-3: oklch(0.65 0.18 145);
+	--chart-4: oklch(0.75 0.15 60);
+	--chart-5: oklch(0.60 0.20 320);
 	--sidebar: oklch(0.985 0 0);
 	--sidebar-foreground: oklch(0.145 0 0);
-	--sidebar-primary: oklch(0.205 0 0);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.97 0 0);
+	--sidebar-primary: oklch(0.78 0.1 190);
+	--sidebar-primary-foreground: oklch(1 0 0);
+	--sidebar-accent: oklch(0.97 0.01 190);
 	--sidebar-accent-foreground: oklch(0.205 0 0);
-	--sidebar-border: oklch(0.922 0 0);
-	--sidebar-ring: oklch(0.708 0 0);
+	--sidebar-border: oklch(0.9 0 0);
+	--sidebar-ring: oklch(0.78 0.1 190);
 }
 
 .dark {
-	--background: oklch(0.145 0 0);
+	--background: oklch(0.16 0 0);
 	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.205 0 0);
+	--card: oklch(0.22 0 0);
 	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.205 0 0);
+	--popover: oklch(0.22 0 0);
 	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.922 0 0);
-	--primary-foreground: oklch(0.205 0 0);
+	--primary: oklch(0.78 0.1 190);
+	--primary-foreground: oklch(1 0 0);
 	--secondary: oklch(0.269 0 0);
 	--secondary-foreground: oklch(0.985 0 0);
 	--muted: oklch(0.269 0 0);
-	--muted-foreground: oklch(0.708 0 0);
+	--muted-foreground: oklch(0.65 0 0);
 	--accent: oklch(0.269 0 0);
 	--accent-foreground: oklch(0.985 0 0);
 	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(1 0 0 / 10%);
+	--border: oklch(1 0 0 / 12%);
 	--input: oklch(1 0 0 / 15%);
-	--ring: oklch(0.556 0 0);
-	--chart-1: oklch(0.488 0.243 264.376);
-	--chart-2: oklch(0.696 0.17 162.48);
-	--chart-3: oklch(0.769 0.188 70.08);
-	--chart-4: oklch(0.627 0.265 303.9);
-	--chart-5: oklch(0.645 0.246 16.439);
-	--sidebar: oklch(0.205 0 0);
+	--ring: oklch(0.78 0.1 190);
+	--chart-1: oklch(0.78 0.1 190);
+	--chart-2: oklch(0.58 0.14 250);
+	--chart-3: oklch(0.65 0.18 145);
+	--chart-4: oklch(0.75 0.15 60);
+	--chart-5: oklch(0.60 0.20 320);
+	--sidebar: oklch(0.16 0 0);
 	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.488 0.243 264.376);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
+	--sidebar-primary: oklch(0.78 0.1 190);
+	--sidebar-primary-foreground: oklch(1 0 0);
 	--sidebar-accent: oklch(0.269 0 0);
 	--sidebar-accent-foreground: oklch(0.985 0 0);
-	--sidebar-border: oklch(1 0 0 / 10%);
-	--sidebar-ring: oklch(0.556 0 0);
+	--sidebar-border: oklch(1 0 0 / 12%);
+	--sidebar-ring: oklch(0.78 0.1 190);
 }
 
 @theme inline {
@@ -117,5 +118,55 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+		font-family: var(--font-family-sans-serif);
+	}
+}
+
+/* Ghostfolio-style table striping */
+.gf-table tr:nth-child(even) {
+	background-color: #f5f5f5;
+}
+.gf-table tr:hover {
+	background-color: #e6e6e6 !important;
+}
+.dark .gf-table tr:nth-child(even) {
+	background-color: #222;
+}
+.dark .gf-table tr:hover {
+	background-color: #303030 !important;
+}
+
+/* Ghostfolio sidebar tab layout */
+.gf-tabs-page {
+	display: flex;
+	flex-direction: column;
+	min-height: calc(100dvh - 3.5rem);
+}
+@media (min-width: 576px) {
+	.gf-tabs-page {
+		flex-direction: row-reverse;
+	}
+	.gf-tabs-page > .gf-tab-sidebar {
+		width: 14rem;
+		flex-shrink: 0;
+		padding: 1rem 0;
+	}
+	.gf-tabs-page > .gf-tab-content {
+		flex: 1;
+		min-width: 0;
+		overflow-y: auto;
+		padding: 2rem 0;
+	}
+}
+@media (max-width: 575.98px) {
+	.gf-tabs-page > .gf-tab-sidebar {
+		order: 1;
+		border-top: 1px solid var(--border);
+	}
+	.gf-tabs-page > .gf-tab-content {
+		order: 0;
+		flex: 1;
+		overflow-y: auto;
+		padding: 1rem 0;
 	}
 }

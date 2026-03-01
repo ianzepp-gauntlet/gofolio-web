@@ -107,7 +107,7 @@
 	<Table.Body>
 		{#each visible as holding (holding.dataSource + ':' + holding.symbol)}
 			<Table.Row
-				class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 cursor-pointer"
+				class="cursor-pointer"
 				onclick={() => onHoldingClick?.(holding)}
 			>
 				<Table.Cell class="sticky left-0 z-10 bg-background font-medium">

@@ -70,7 +70,7 @@
 	<Table.Body>
 		{#each accounts as account (account.id)}
 			<Table.Row
-				class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 {canOpenDetails
+				class=" {canOpenDetails
 					? 'cursor-pointer'
 					: ''}"
 				onclick={() => canOpenDetails && onViewDetails?.(account.id)}

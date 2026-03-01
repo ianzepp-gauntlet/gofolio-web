@@ -94,9 +94,9 @@
 	}
 </script>
 
-<div class="space-y-4">
-	<h1 class="hidden text-center text-2xl font-semibold sm:block">Accounts</h1>
-	<div class="mx-auto w-full max-w-6xl space-y-3">
+<div class="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 sm:py-8">
+	<h1 class="hidden text-center text-xl font-semibold sm:block">Accounts</h1>
+	<div class="space-y-3">
 		{#if data.accounts.length === 0}
 			<div class="bg-muted/30 border-border rounded-lg border p-6 text-center">
 				<p class="text-lg font-medium">No accounts have been set up</p>

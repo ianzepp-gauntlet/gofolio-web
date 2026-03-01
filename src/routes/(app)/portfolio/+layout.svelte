@@ -8,9 +8,9 @@
 	const tabs = [
 		{ href: '/portfolio/activities', label: 'Activities', icon: ChartCandlestick },
 		{ href: '/portfolio/allocations', label: 'Allocations', icon: PieChart },
-		{ href: '/portfolio/fire', label: 'Fire', icon: Flame },
-		{ href: '/portfolio/x-ray', label: 'X-Ray', icon: Microscope },
-		{ href: '/portfolio/analysis', label: 'Analysis', icon: BrainCircuit }
+		{ href: '/portfolio/fire', label: 'FIRE', icon: Flame },
+		{ href: '/portfolio/analysis', label: 'Analysis', icon: BrainCircuit },
+		{ href: '/portfolio/x-ray', label: 'X-Ray', icon: Microscope }
 	];
 
 	function isActive(href: string): boolean {
@@ -18,14 +18,30 @@
 	}
 </script>
 
-<div class="space-y-3">
-	<nav class="border-border overflow-x-auto rounded-md border p-1">
-		<div class="flex min-w-max items-center gap-1">
+<div class="gf-tabs-page">
+	<nav class="gf-tab-sidebar">
+		<!-- Mobile: horizontal bottom bar -->
+		<div class="flex items-center justify-center gap-1 sm:hidden">
 			{#each tabs as tab (tab.href)}
 				<a
 					href={tab.href}
-					class="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors {isActive(tab.href)
-						? 'bg-accent text-foreground'
+					class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm transition-colors
+						{isActive(tab.href)
+						? 'text-foreground font-medium'
+						: 'text-muted-foreground hover:text-foreground'}"
+				>
+					<tab.icon class="h-5 w-5" />
+				</a>
+			{/each}
+		</div>
+		<!-- Desktop: vertical sidebar -->
+		<div class="bg-foreground/[0.02] hidden flex-col sm:flex">
+			{#each tabs as tab (tab.href)}
+				<a
+					href={tab.href}
+					class="flex items-center gap-2 px-4 py-2 text-sm transition-colors
+						{isActive(tab.href)
+						? 'text-foreground font-medium'
 						: 'text-muted-foreground hover:text-foreground'}"
 				>
 					<tab.icon class="h-4 w-4" />
@@ -35,5 +51,9 @@
 		</div>
 	</nav>
 
-	{@render children()}
+	<div class="gf-tab-content">
+		<div class="mx-auto w-full max-w-5xl px-4">
+			{@render children()}
+		</div>
+	</div>
 </div>

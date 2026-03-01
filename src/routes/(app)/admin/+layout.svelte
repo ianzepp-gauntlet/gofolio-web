@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import type { Snippet } from 'svelte';
+	import { LayoutDashboard, ListTodo, Database, Settings, Users } from '@lucide/svelte';
 
 	let { children }: { children: Snippet } = $props();
 
 	const tabs = [
-		{ href: '/admin/overview', label: 'Overview' },
-		{ href: '/admin/jobs', label: 'Jobs' },
-		{ href: '/admin/market-data', label: 'Market Data' },
-		{ href: '/admin/settings', label: 'Settings' },
-		{ href: '/admin/users', label: 'Users' }
+		{ href: '/admin/overview', label: 'Overview', icon: LayoutDashboard },
+		{ href: '/admin/jobs', label: 'Jobs', icon: ListTodo },
+		{ href: '/admin/market-data', label: 'Market Data', icon: Database },
+		{ href: '/admin/settings', label: 'Settings', icon: Settings },
+		{ href: '/admin/users', label: 'Users', icon: Users }
 	];
 
 	function isActive(href: string): boolean {
@@ -17,21 +18,40 @@
 	}
 </script>
 
-<div class="space-y-3">
-	<nav class="border-border overflow-x-auto rounded-md border p-1">
-		<div class="flex min-w-max items-center gap-1">
+<div class="gf-tabs-page">
+	<nav class="gf-tab-sidebar">
+		<div class="flex items-center justify-center gap-1 sm:hidden">
 			{#each tabs as tab (tab.href)}
 				<a
 					href={tab.href}
-					class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors {isActive(tab.href)
-						? 'bg-accent text-foreground'
+					class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm transition-colors
+						{isActive(tab.href)
+						? 'text-foreground font-medium'
 						: 'text-muted-foreground hover:text-foreground'}"
 				>
-					{tab.label}
+					<tab.icon class="h-5 w-5" />
+				</a>
+			{/each}
+		</div>
+		<div class="bg-foreground/[0.02] hidden flex-col sm:flex">
+			{#each tabs as tab (tab.href)}
+				<a
+					href={tab.href}
+					class="flex items-center gap-2 px-4 py-2 text-sm transition-colors
+						{isActive(tab.href)
+						? 'text-foreground font-medium'
+						: 'text-muted-foreground hover:text-foreground'}"
+				>
+					<tab.icon class="h-4 w-4" />
+					<span>{tab.label}</span>
 				</a>
 			{/each}
 		</div>
 	</nav>
 
-	{@render children()}
+	<div class="gf-tab-content">
+		<div class="mx-auto w-full max-w-5xl px-4">
+			{@render children()}
+		</div>
+	</div>
 </div>

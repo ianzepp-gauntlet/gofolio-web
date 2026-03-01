@@ -179,7 +179,7 @@
 					{@const Icon50 = trendIcon(benchmark.trend50d)}
 					{@const Icon200 = trendIcon(benchmark.trend200d)}
 					<Table.Row
-						class="odd:bg-background even:bg-muted/30 hover:bg-muted/60 cursor-pointer"
+						class="cursor-pointer"
 						onclick={() => openDetailDialog(benchmark)}
 					>
 						<Table.Cell class="sticky left-0 z-10 bg-background font-medium">

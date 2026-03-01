@@ -36,22 +36,22 @@
 	{#if data.users.length === 0}
 		<p class="text-muted-foreground py-8 text-center text-sm">No users found.</p>
 	{:else}
-		<div class="border-border overflow-x-auto rounded-md border">
-			<table class="w-full text-sm">
+		<div class="overflow-x-auto">
+			<table class="gf-table w-full text-sm">
 				<thead>
-					<tr class="border-border bg-muted/50 border-b">
-						<th class="px-4 py-2 text-left font-medium">User</th>
-						<th class="hidden px-4 py-2 text-left font-medium md:table-cell">Registered</th>
-						<th class="hidden px-4 py-2 text-right font-medium md:table-cell">Accounts</th>
-						<th class="hidden px-4 py-2 text-right font-medium md:table-cell">Activities</th>
-						<th class="hidden px-4 py-2 text-left font-medium lg:table-cell">Role</th>
-						<th class="px-4 py-2 text-right font-medium">Actions</th>
+					<tr>
+						<th class="px-1 py-2 text-left font-medium">User</th>
+						<th class="hidden px-1 py-2 text-left font-medium md:table-cell">Registered</th>
+						<th class="hidden px-1 py-2 text-right font-medium md:table-cell">Accounts</th>
+						<th class="hidden px-1 py-2 text-right font-medium md:table-cell">Activities</th>
+						<th class="hidden px-1 py-2 text-left font-medium lg:table-cell">Role</th>
+						<th class="px-1 py-2 text-right font-medium">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each data.users as user (user.id)}
-						<tr class="border-border border-b last:border-0">
-							<td class="px-4 py-2">
+						<tr>
+							<td class="px-1 py-2">
 								<div>
 									<span class="font-mono text-xs">{user.id.substring(0, 8)}...</span>
 									{#if user.alias}
@@ -59,13 +59,13 @@
 									{/if}
 								</div>
 							</td>
-							<td class="hidden px-4 py-2 text-xs md:table-cell"
+							<td class="hidden px-1 py-2 text-xs md:table-cell"
 								>{relativeDate(user.createdAt)}</td
 							>
-							<td class="hidden px-4 py-2 text-right md:table-cell">{user.accountCount}</td>
-							<td class="hidden px-4 py-2 text-right md:table-cell">{user.activitiesCount}</td>
-							<td class="hidden px-4 py-2 text-xs lg:table-cell">{user.role ?? '—'}</td>
-							<td class="px-4 py-2 text-right">
+							<td class="hidden px-1 py-2 text-right md:table-cell">{user.accountCount}</td>
+							<td class="hidden px-1 py-2 text-right md:table-cell">{user.activitiesCount}</td>
+							<td class="hidden px-1 py-2 text-xs lg:table-cell">{user.role ?? '—'}</td>
+							<td class="px-1 py-2 text-right">
 								<div class="flex justify-end gap-1">
 									<form method="POST" action="?/generateToken" use:enhance>
 										<input type="hidden" name="userId" value={user.id} />

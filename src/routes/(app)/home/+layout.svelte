@@ -13,30 +13,47 @@
 		{ value: 'markets', label: 'Markets', href: '/home/markets', icon: TrendingUp }
 	];
 
-	let activeTab = $derived(
-		tabs.find((t) => $page.url.pathname.startsWith(t.href))?.value ?? 'overview'
-	);
+	function isActive(href: string): boolean {
+		return $page.url.pathname.startsWith(href);
+	}
 </script>
 
-<div class="flex min-h-[calc(100dvh-8.5rem)] flex-col">
-	<div class="min-h-0 flex-1 overflow-auto pb-4">
-		{@render children()}
-	</div>
-
-	<nav class="border-border mt-1 border-t pt-2">
-		<div class="mx-auto flex w-full items-center justify-center gap-1">
+<div class="gf-tabs-page">
+	<nav class="gf-tab-sidebar">
+		<!-- Mobile: horizontal bottom bar -->
+		<div class="flex items-center justify-center gap-1 sm:hidden">
 			{#each tabs as tab (tab.value)}
 				<a
 					href={tab.href}
-					class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex min-w-0 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none {activeTab ===
-					tab.value
-						? 'bg-accent text-foreground'
-						: ''}"
+					class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm transition-colors
+						{isActive(tab.href)
+						? 'text-foreground font-medium'
+						: 'text-muted-foreground hover:text-foreground'}"
 				>
-					<tab.icon class="h-5 w-5 sm:h-4 sm:w-4" />
-					<span class="hidden sm:inline">{tab.label}</span>
+					<tab.icon class="h-5 w-5" />
+				</a>
+			{/each}
+		</div>
+		<!-- Desktop: vertical sidebar -->
+		<div class="bg-foreground/[0.02] hidden flex-col sm:flex">
+			{#each tabs as tab (tab.value)}
+				<a
+					href={tab.href}
+					class="flex items-center gap-2 px-4 py-2 text-sm transition-colors
+						{isActive(tab.href)
+						? 'text-foreground font-medium'
+						: 'text-muted-foreground hover:text-foreground'}"
+				>
+					<tab.icon class="h-4 w-4" />
+					<span>{tab.label}</span>
 				</a>
 			{/each}
 		</div>
 	</nav>
+
+	<div class="gf-tab-content">
+		<div class="mx-auto w-full max-w-5xl px-4">
+			{@render children()}
+		</div>
+	</div>
 </div>

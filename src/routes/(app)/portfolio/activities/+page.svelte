@@ -394,9 +394,7 @@
 		<Table.Body>
 			{#each data.activities as activity (activity.id)}
 				<Table.Row
-					class="odd:bg-background even:bg-muted/30 {canOpenHolding(activity)
-						? 'hover:bg-muted/50 cursor-pointer'
-						: ''}"
+					class="{canOpenHolding(activity) ? 'cursor-pointer' : ''}"
 					onclick={() => openHoldingDetail(activity)}
 				>
 					<Table.Cell>{new Date(activity.date).toLocaleDateString()}</Table.Cell>

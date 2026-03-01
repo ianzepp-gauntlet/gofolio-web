@@ -85,33 +85,33 @@
 	{#if data.marketData.length === 0}
 		<p class="text-muted-foreground py-8 text-center text-sm">No asset profiles found.</p>
 	{:else}
-		<div class="border-border overflow-x-auto rounded-md border">
-			<table class="w-full text-sm">
+		<div class="overflow-x-auto">
+			<table class="gf-table w-full text-sm">
 				<thead>
-					<tr class="border-border bg-muted/50 border-b">
-						<th class="px-4 py-2 text-left font-medium">Name</th>
-						<th class="px-4 py-2 text-left font-medium">Symbol</th>
-						<th class="hidden px-4 py-2 text-left font-medium md:table-cell">Data Source</th>
-						<th class="hidden px-4 py-2 text-left font-medium md:table-cell">Asset Class</th>
-						<th class="hidden px-4 py-2 text-left font-medium lg:table-cell">Sub Class</th>
-						<th class="hidden px-4 py-2 text-left font-medium lg:table-cell">Currency</th>
-						<th class="hidden px-4 py-2 text-right font-medium md:table-cell">Activities</th>
-						<th class="hidden px-4 py-2 text-right font-medium lg:table-cell">Data Points</th>
-						<th class="px-4 py-2 text-right font-medium">Actions</th>
+					<tr>
+						<th class="px-1 py-2 text-left font-medium">Name</th>
+						<th class="px-1 py-2 text-left font-medium">Symbol</th>
+						<th class="hidden px-1 py-2 text-left font-medium md:table-cell">Data Source</th>
+						<th class="hidden px-1 py-2 text-left font-medium md:table-cell">Asset Class</th>
+						<th class="hidden px-1 py-2 text-left font-medium lg:table-cell">Sub Class</th>
+						<th class="hidden px-1 py-2 text-left font-medium lg:table-cell">Currency</th>
+						<th class="hidden px-1 py-2 text-right font-medium md:table-cell">Activities</th>
+						<th class="hidden px-1 py-2 text-right font-medium lg:table-cell">Data Points</th>
+						<th class="px-1 py-2 text-right font-medium">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each data.marketData as item (item.dataSource + item.symbol)}
-						<tr class="border-border border-b last:border-0">
-							<td class="max-w-[200px] truncate px-4 py-2">{item.name || '—'}</td>
-							<td class="px-4 py-2 font-mono text-xs">{item.symbol}</td>
-							<td class="hidden px-4 py-2 text-xs md:table-cell">{item.dataSource}</td>
-							<td class="hidden px-4 py-2 text-xs md:table-cell">{item.assetClass ?? '—'}</td>
-							<td class="hidden px-4 py-2 text-xs lg:table-cell">{item.assetSubClass ?? '—'}</td>
-							<td class="hidden px-4 py-2 text-xs lg:table-cell">{item.currency ?? '—'}</td>
-							<td class="hidden px-4 py-2 text-right md:table-cell">{item.activitiesCount}</td>
-							<td class="hidden px-4 py-2 text-right lg:table-cell">{item.marketDataItemCount}</td>
-							<td class="px-4 py-2 text-right">
+						<tr>
+							<td class="max-w-[200px] truncate px-1 py-2">{item.name || '—'}</td>
+							<td class="px-1 py-2 font-mono text-xs">{item.symbol}</td>
+							<td class="hidden px-1 py-2 text-xs md:table-cell">{item.dataSource}</td>
+							<td class="hidden px-1 py-2 text-xs md:table-cell">{item.assetClass ?? '—'}</td>
+							<td class="hidden px-1 py-2 text-xs lg:table-cell">{item.assetSubClass ?? '—'}</td>
+							<td class="hidden px-1 py-2 text-xs lg:table-cell">{item.currency ?? '—'}</td>
+							<td class="hidden px-1 py-2 text-right md:table-cell">{item.activitiesCount}</td>
+							<td class="hidden px-1 py-2 text-right lg:table-cell">{item.marketDataItemCount}</td>
+							<td class="px-1 py-2 text-right">
 								<form method="POST" action="?/deleteProfile" use:enhance>
 									<input type="hidden" name="dataSource" value={item.dataSource} />
 									<input type="hidden" name="symbol" value={item.symbol} />

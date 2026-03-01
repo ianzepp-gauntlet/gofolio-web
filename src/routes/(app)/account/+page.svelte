@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { ActionData, PageData } from './$types';
-	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -21,11 +20,9 @@
 <div class="space-y-6">
 	<!-- Settings Form -->
 	<form method="POST" action="?/updateSettings" use:enhance>
-		<Card.Root>
-			<Card.Header>
-				<Card.Title class="text-base">Settings</Card.Title>
-			</Card.Header>
-			<Card.Content class="space-y-4">
+		<section>
+			<h3 class="mb-3 text-sm font-medium">Settings</h3>
+			<div class="space-y-4">
 				<div class="grid gap-4 md:grid-cols-2">
 					<div class="space-y-2">
 						<Label for="baseCurrency">Base Currency</Label>
@@ -132,55 +129,43 @@
 				<div class="flex justify-end">
 					<Button type="submit">Save Settings</Button>
 				</div>
-			</Card.Content>
-		</Card.Root>
+			</div>
+		</section>
 	</form>
 
 	<!-- User Info -->
-	<Card.Root>
-		<Card.Header>
-			<Card.Title class="text-base">User ID</Card.Title>
-		</Card.Header>
-		<Card.Content>
-			<code class="bg-muted rounded px-2 py-1 text-xs">{data.user.id}</code>
-		</Card.Content>
-	</Card.Root>
+	<section>
+		<h3 class="mb-3 text-sm font-medium">User ID</h3>
+		<code class="bg-muted rounded px-2 py-1 text-xs">{data.user.id}</code>
+	</section>
 
 	<!-- Export -->
-	<Card.Root>
-		<Card.Header>
-			<Card.Title class="text-base">Export Data</Card.Title>
-			<Card.Description>Download all your data as JSON.</Card.Description>
-		</Card.Header>
-		<Card.Content>
-			<a href="/api/v1/export" download="gofolio-export.json">
-				<Button variant="outline" size="sm">Export</Button>
-			</a>
-		</Card.Content>
-	</Card.Root>
+	<section>
+		<h3 class="mb-3 text-sm font-medium">Export Data</h3>
+		<p class="text-muted-foreground mb-3 text-sm">Download all your data as JSON.</p>
+		<a href="/api/v1/export" download="gofolio-export.json">
+			<Button variant="outline" size="sm">Export</Button>
+		</a>
+	</section>
 
 	<!-- Danger Zone -->
-	<Card.Root class="border-destructive/50">
-		<Card.Header>
-			<Card.Title class="text-destructive text-base">Danger Zone</Card.Title>
-			<Card.Description>Once you delete your account, there is no going back.</Card.Description>
-		</Card.Header>
-		<Card.Content>
-			<Button variant="destructive" size="sm" onclick={() => (showDangerZone = !showDangerZone)}>
-				{showDangerZone ? 'Cancel' : 'Delete Account'}
-			</Button>
+	<section>
+		<h3 class="text-destructive mb-3 text-sm font-medium">Danger Zone</h3>
+		<p class="text-muted-foreground mb-3 text-sm">Once you delete your account, there is no going back.</p>
+		<Button variant="destructive" size="sm" onclick={() => (showDangerZone = !showDangerZone)}>
+			{showDangerZone ? 'Cancel' : 'Delete Account'}
+		</Button>
 
-			{#if showDangerZone}
-				<form method="POST" action="?/deleteAccount" use:enhance class="mt-4 space-y-2">
-					<Label for="securityToken">Enter your security token to confirm</Label>
-					<Input id="securityToken" name="securityToken" type="password" required class="max-w-xs" />
-					<Button type="submit" variant="destructive" size="sm">Permanently Delete</Button>
-				</form>
-			{/if}
+		{#if showDangerZone}
+			<form method="POST" action="?/deleteAccount" use:enhance class="mt-4 space-y-2">
+				<Label for="securityToken">Enter your security token to confirm</Label>
+				<Input id="securityToken" name="securityToken" type="password" required class="max-w-xs" />
+				<Button type="submit" variant="destructive" size="sm">Permanently Delete</Button>
+			</form>
+		{/if}
 
-			{#if form?.action === 'deleteAccount' && form?.error}
-				<p class="text-destructive mt-2 text-sm">{form.error}</p>
-			{/if}
-		</Card.Content>
-	</Card.Root>
+		{#if form?.action === 'deleteAccount' && form?.error}
+			<p class="text-destructive mt-2 text-sm">{form.error}</p>
+		{/if}
+	</section>
 </div>
