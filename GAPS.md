@@ -73,6 +73,7 @@ This document tracks the remaining work to recreate Ghostfolio's UI/UX in `gofol
 ## 9. Portfolio Section Coverage (Major Missing Area)
 
 - [x] Implement portfolio routes/pages scaffold:
+ - [~] Activities page upgraded from placeholder to live `/api/v1/order` table with pagination/sort/delete baseline.
   - Activities
   - Allocations
   - Fire

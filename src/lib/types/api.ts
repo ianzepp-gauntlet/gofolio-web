@@ -233,3 +233,29 @@ export interface MarketDataOfMarketsResponse {
 		CRYPTOCURRENCIES?: FearAndGreedModeData;
 	};
 }
+
+// Activities
+
+export interface ActivityItem {
+	id: string;
+	accountId?: string;
+	account?: { id: string; name: string };
+	comment?: string | null;
+	createdAt?: string;
+	currency?: string;
+	dataSource?: string;
+	date: string;
+	fee?: number;
+	feeInBaseCurrency?: number;
+	quantity?: number;
+	symbol?: string;
+	type?: string;
+	unitPrice?: number;
+	value?: number;
+	valueInBaseCurrency?: number;
+}
+
+export interface ActivitiesResponse {
+	activities: ActivityItem[];
+	count: number;
+}
